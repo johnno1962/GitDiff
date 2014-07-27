@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#30 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#31 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -40,21 +40,18 @@ static GitDiff *gitDiffPlugin;
         gitDiffPlugin.popover = [[NSText alloc] initWithFrame:NSZeroRect];
         gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.modifiedColor;
 
-        [self swizzleClass:@"IDESourceCodeDocument"
-                  exchange:@selector(writeToURL:ofType:error:)
-                      with:@selector(gitdiff_writeToURL:ofType:error:)];
-        [self swizzleClass:@"DVTTextSidebarView"
+        Class aClass = NSClassFromString(@"DVTTextSidebarView");
+        [self swizzleClass:aClass
                   exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
                       with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)];
-        [self swizzleClass:@"DVTTextSidebarView"
+        [self swizzleClass:aClass
                   exchange:@selector(annotationAtSidebarPoint:)
                       with:@selector(gitdiff_annotationAtSidebarPoint:)];
     });
 }
 
-+ (void)swizzleClass:(NSString *)className exchange:(SEL)origMethod with:(SEL)altMethod
++ (void)swizzleClass:(Class)aClass exchange:(SEL)origMethod with:(SEL)altMethod
 {
-    Class aClass = NSClassFromString(className);
     method_exchangeImplementations(class_getInstanceMethod(aClass, origMethod),
                                    class_getInstanceMethod(aClass, altMethod));
 }
@@ -108,12 +105,10 @@ inline bool exists( const _M &map, const _K &key ) {
                         modified[modline++] = deline;
                         delcnt++;
                         break;
-                    case '+': {
+                    case '+':
                         added[line] = YES;
-                        auto modent = modified.find(line);
-                        if ( ++addcnt > delcnt && modent != modified.end() )
-                            modified.erase(modent);
-                    }
+                        if ( ++addcnt > delcnt )
+                            modified.erase(line);
                     default:
                         deline = modline = ++line;
                         if ( buffer[0] != '+' )
@@ -135,16 +130,19 @@ inline bool exists( const _M &map, const _K &key ) {
 
 @end
 
+@interface NSDocument(GitDiff)
+- (void)_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3;
+@end
+
 @interface IDESourceCodeDocument : NSDocument
 @end
 
 @implementation IDESourceCodeDocument(GitDiff)
 
 // source file is being saved
-- (BOOL)gitdiff_writeToURL:(NSURL *)url ofType:(NSString *)type error:(NSError **)error
-{
+- (void)_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3 {
+    [super _finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
     [[GitFileDiffs alloc] performSelectorInBackground:@selector(initFile:) withObject:[[self fileURL] path]];
-    return [self gitdiff_writeToURL:url ofType:type error:error];
 }
 
 @end
