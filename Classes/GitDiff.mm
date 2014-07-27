@@ -154,7 +154,7 @@ static GitDiff *gitDiffPlugin;
 @implementation DVTTextSidebarView(GitDiff)
 
 - (NSTextView *)sourceTextView {
-    return [(id)[self scrollView] delegate];
+    return (NSTextView *)[(id)[self scrollView] delegate];
 }
 
 - (GitFileDiffs *)gitDiffs
