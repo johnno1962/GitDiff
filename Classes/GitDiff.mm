@@ -2,6 +2,8 @@
 //  GitDelta.mm
 //  Git difference highlighter plugin.
 //
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#28 $
+//
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
 //
@@ -12,7 +14,7 @@
 #import <string>
 #import <map>
 
-#define EXISTS( _map, _entry ) (_map.find(_entry) != _map.end())
+#define EXISTS( _map, _key ) (_map.find(_key) != _map.end())
 
 static GitDiff *gitDiffPlugin;
 
@@ -41,34 +43,32 @@ static GitDiff *gitDiffPlugin;
         gitDiffPlugin.popover = [[NSText alloc] initWithFrame:NSZeroRect];
         gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.modifiedColor;
 
-        Class aClass = NSClassFromString(@"IDESourceCodeDocument");
-
-        Method orig_method = class_getInstanceMethod(aClass, @selector(writeToURL:ofType:error:));
-        Method alt_method = class_getInstanceMethod(aClass, @selector(git_writeToURL:ofType:error:));
-
-        method_exchangeImplementations(orig_method,alt_method);
-
-        aClass = NSClassFromString(@"DVTTextSidebarView");
-
-        orig_method = class_getInstanceMethod(aClass, @selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:));
-        alt_method = class_getInstanceMethod(aClass, @selector(git_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:));
-
-        method_exchangeImplementations(orig_method,alt_method);
-
-        orig_method = class_getInstanceMethod(aClass, @selector(annotationAtSidebarPoint:));
-        alt_method = class_getInstanceMethod(aClass, @selector(git_annotationAtSidebarPoint:));
-
-        method_exchangeImplementations(orig_method,alt_method);
+        [self swizzleClass:@"IDESourceCodeDocument"
+                  exchange:@selector(writeToURL:ofType:error:)
+                      with:@selector(gitdiff_writeToURL:ofType:error:)];
+        [self swizzleClass:@"DVTTextSidebarView"
+                  exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
+                      with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)];
+        [self swizzleClass:@"DVTTextSidebarView"
+                  exchange:@selector(annotationAtSidebarPoint:)
+                      with:@selector(gitdiff_annotationAtSidebarPoint:)];
     });
+}
+
++ (void)swizzleClass:(NSString *)className exchange:(SEL)origMethod with:(SEL)altMethod
+{
+    Class aClass = NSClassFromString(className);
+    method_exchangeImplementations(class_getInstanceMethod(aClass, origMethod),
+                                   class_getInstanceMethod(aClass, altMethod));
 }
 
 @end
 
 @interface GitFileDiffs : NSObject {
 @public
-    std::map<unsigned long,std::string> deleted;
-    std::map<unsigned long,unsigned long> modified;
-    std::map<unsigned long,BOOL> added;
+    std::map<unsigned long,std::string> deleted; // text deleted by line
+    std::map<unsigned long,unsigned long> modified; // line number mods started by line
+    std::map<unsigned long,BOOL> added; // line has been added or modified
     time_t updated;
 }
 @end
@@ -80,7 +80,7 @@ static GitDiff *gitDiffPlugin;
 {
     if ( (self = [super init]) ) {
 
-        NSString *command = [NSString stringWithFormat:@"cd '%@' && /usr/bin/git diff '%@'",
+        NSString *command = [NSString stringWithFormat:@"cd \"%@\" && /usr/bin/git diff \"%@\"",
                              [path stringByDeletingLastPathComponent], path];
         FILE *diffs = popen([command UTF8String], "r");
 
@@ -120,7 +120,7 @@ static GitDiff *gitDiffPlugin;
             pclose(diffs);
         }
         else
-            NSLog( @"Could not run diff command: %@", command );
+            NSLog( @"GitDiff Plugin: Could not run diff command: %@", command );
 
         gitDiffPlugin.diffsByFile[path] = self;
         updated = time(NULL);
@@ -137,10 +137,10 @@ static GitDiff *gitDiffPlugin;
 @implementation IDESourceCodeDocument(GitDiff)
 
 // source file is being saved
-- (BOOL)git_writeToURL:(NSURL *)url ofType:(NSString *)type error:(NSError **)error
+- (BOOL)gitdiff_writeToURL:(NSURL *)url ofType:(NSString *)type error:(NSError **)error
 {
     [[GitFileDiffs alloc] performSelectorInBackground:@selector(initFile:) withObject:[[self fileURL] path]];
-    return [self git_writeToURL:url ofType:type error:error];
+    return [self gitdiff_writeToURL:url ofType:type error:error];
 }
 
 @end
@@ -153,7 +153,8 @@ static GitDiff *gitDiffPlugin;
 
 @implementation DVTTextSidebarView(GitDiff)
 
-- (NSTextView *)sourceTextView {
+- (NSTextView *)sourceTextView
+{
     return (NSTextView *)[(id)[self scrollView] delegate];
 }
 
@@ -170,7 +171,7 @@ static GitDiff *gitDiffPlugin;
 }
 
 // the line numbers sidebar is being redrawn
-- (void)git_drawLineNumbersInSidebarRect:(CGRect)rect foldedIndexes:(unsigned long *)indexes count:(unsigned long)indexCount linesToInvert:(id)a3 linesToReplace:(id)a4 getParaRectBlock:rectBlock
+- (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect foldedIndexes:(unsigned long *)indexes count:(unsigned long)indexCount linesToInvert:(id)a3 linesToReplace:(id)a4 getParaRectBlock:rectBlock
 {
     GitFileDiffs *diffs = [self gitDiffs];
 
@@ -197,14 +198,14 @@ static GitDiff *gitDiffPlugin;
 
     [self unlockFocus];
 
-    [self git_drawLineNumbersInSidebarRect:rect foldedIndexes:indexes count:indexCount
+    [self gitdiff_drawLineNumbersInSidebarRect:rect foldedIndexes:indexes count:indexCount
                              linesToInvert:a3 linesToReplace:a4 getParaRectBlock:rectBlock];
 }
 
-- (id)git_annotationAtSidebarPoint:(CGPoint)p0
+- (id)gitdiff_annotationAtSidebarPoint:(CGPoint)p0
 {
     NSText *popover = gitDiffPlugin.popover;
-    id annotation = [self git_annotationAtSidebarPoint:p0];
+    id annotation = [self gitdiff_annotationAtSidebarPoint:p0];
 
     if ( !annotation && p0.x < self.sidebarWidth ) {
         GitFileDiffs *diffs = [self gitDiffs];
