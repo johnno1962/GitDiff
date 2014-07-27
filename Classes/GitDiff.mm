@@ -163,7 +163,7 @@ static GitDiff *gitDiffPlugin;
     NSString *path = [[doc fileURL] path];
 
     GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
-    if ( !diffs )
+    if ( !diffs || time(NULL) > diffs->updated + 60 )
         diffs = [[GitFileDiffs alloc] initFile:path];
 
     return diffs;
