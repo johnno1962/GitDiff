@@ -2,19 +2,16 @@
 //  GitDelta.mm
 //  Git difference highlighter plugin.
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#28 $
+//  Repo: https://github.com/johnno1962/GitDiff
+//
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#30 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
 //
 
 #import "GitDiff.h"
-
 #import <objc/runtime.h>
-#import <string>
-#import <map>
-
-#define EXISTS( _map, _key ) (_map.find(_key) != _map.end())
 
 static GitDiff *gitDiffPlugin;
 
@@ -64,6 +61,14 @@ static GitDiff *gitDiffPlugin;
 
 @end
 
+#import <map>
+#import <string>
+
+template <class _M,typename _K>
+inline bool exists( const _M &map, const _K &key ) {
+    return map.find(key) != map.end();
+}
+
 @interface GitFileDiffs : NSObject {
 @public
     std::map<unsigned long,std::string> deleted; // text deleted by line
@@ -103,9 +108,8 @@ static GitDiff *gitDiffPlugin;
                         modified[modline++] = deline;
                         delcnt++;
                         break;
-                    case '+':
+                    case '+': {
                         added[line] = YES;
-                    {
                         auto modent = modified.find(line);
                         if ( ++addcnt > delcnt && modent != modified.end() )
                             modified.erase(modent);
@@ -122,8 +126,8 @@ static GitDiff *gitDiffPlugin;
         else
             NSLog( @"GitDiff Plugin: Could not run diff command: %@", command );
 
-        gitDiffPlugin.diffsByFile[path] = self;
         updated = time(NULL);
+        gitDiffPlugin.diffsByFile[path] = self;
     }
 
     return self;
@@ -179,8 +183,8 @@ static GitDiff *gitDiffPlugin;
 
     for ( int i=0 ; i<indexCount ; i++ ) {
         unsigned long line = indexes[i];
-        NSColor *highlight = !EXISTS( diffs->added, line ) ? nil :
-            EXISTS( diffs->modified, line ) ? gitDiffPlugin.modifiedColor : gitDiffPlugin.addedColor;
+        NSColor *highlight = !exists( diffs->added, line ) ? nil :
+            exists( diffs->modified, line ) ? gitDiffPlugin.modifiedColor : gitDiffPlugin.addedColor;
         CGRect a0, a1;
 
         if ( highlight ) {
@@ -188,7 +192,7 @@ static GitDiff *gitDiffPlugin;
             [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
             NSRectFill( CGRectInset(a0,1.,1.) );
         }
-        else if ( EXISTS( diffs->deleted, line ) ) {
+        else if ( exists( diffs->deleted, line ) ) {
             [gitDiffPlugin.deletedColor setFill];
             [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
             a0.size.height = 1.;
@@ -211,8 +215,8 @@ static GitDiff *gitDiffPlugin;
         GitFileDiffs *diffs = [self gitDiffs];
         unsigned long line = [self lineNumberForPoint:p0];
 
-        if ( EXISTS( diffs->deleted, line ) ||
-                (EXISTS( diffs->added, line ) && EXISTS( diffs->modified, line )) ) {
+        if ( exists( diffs->deleted, line ) ||
+                (exists( diffs->added, line ) && exists( diffs->modified, line )) ) {
             CGRect a0, a1;
             unsigned long start = diffs->modified[line];
             [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:start];

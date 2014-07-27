@@ -7,7 +7,7 @@ A red line indicates code has been removed. Hover over deleted/modified line num
 
 ![Icon](http://injectionforxcode.johnholdsworth.com/gitdiff.png)
 
-This Plugin is also available though [Alcatraz](http://alcatraz.io/) meta-plugin and was developed using
+This Plugin is also available through the [Alcatraz](http://alcatraz.io/) meta-plugin and was developed using
 the [Xprobe Plugin](https://github.com/johnno1962/XprobePlugin) for Xcode plugin developers.
 
 ### MIT License
