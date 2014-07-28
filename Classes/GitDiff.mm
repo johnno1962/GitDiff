@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#34 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#35 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -197,7 +197,7 @@ static bool exists( const _M &map, const _K &key ) {
             if ( highlight ) {
                 [highlight setFill];
                 [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
-                NSRectFill( CGRectInset(a0,1.,1.) );
+                [[NSBezierPath bezierPathWithRect:CGRectInset(a0,1.,1.)] fill];
             }
             else if ( exists( diffs->deleted, line ) ) {
                 [gitDiffPlugin.deletedColor.color setFill];

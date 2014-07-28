@@ -36,7 +36,7 @@
                     <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="rIO-tM-r5P">
                         <rect key="frame" x="94" y="162" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <color key="color" red="1" green="0.90000000000000002" blue="0.59999999999999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="color" red="0.95195737089999999" green="0.86135765637343575" blue="0.12775372675458699" alpha="0.5" colorSpace="calibratedRGB"/>
                     </colorWell>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gTP-Ck-opl">
                         <rect key="frame" x="24" y="118" width="49" height="17"/>
@@ -50,7 +50,7 @@
                     <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZC2-6H-YkT">
                         <rect key="frame" x="94" y="115" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <color key="color" red="0.69999999999999996" green="1" blue="0.69999999999999996" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="color" red="0.39756392280000002" green="1" blue="0.22529959229999999" alpha="0.5" colorSpace="calibratedRGB"/>
                     </colorWell>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0Mz-J8-IR0">
                         <rect key="frame" x="24" y="72" width="57" height="17"/>
