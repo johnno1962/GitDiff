@@ -140,7 +140,8 @@ inline bool exists( const _M &map, const _K &key ) {
 @implementation IDESourceCodeDocument(GitDiff)
 
 // source file is being saved
-- (void)_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3 {
+- (void)_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3
+{
     [super _finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
     [[GitFileDiffs alloc] performSelectorInBackground:@selector(initFile:) withObject:[[self fileURL] path]];
 }
@@ -162,7 +163,11 @@ inline bool exists( const _M &map, const _K &key ) {
 
 - (GitFileDiffs *)gitDiffs
 {
-    IDESourceCodeDocument *doc = [(id)[[self sourceTextView] delegate] document];
+    NSTextView *sourceTextView = [self sourceTextView];
+    if ( ![sourceTextView respondsToSelector:@selector(delegate)] )
+        return nil;
+
+    IDESourceCodeDocument *doc = [(id)[sourceTextView delegate] document];
     NSString *path = [[doc fileURL] path];
 
     GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
@@ -177,28 +182,30 @@ inline bool exists( const _M &map, const _K &key ) {
 {
     GitFileDiffs *diffs = [self gitDiffs];
 
-    [self lockFocus];
+    if ( diffs ) {
+        [self lockFocus];
 
-    for ( int i=0 ; i<indexCount ; i++ ) {
-        unsigned long line = indexes[i];
-        NSColor *highlight = !exists( diffs->added, line ) ? nil :
-            exists( diffs->modified, line ) ? gitDiffPlugin.modifiedColor : gitDiffPlugin.addedColor;
-        CGRect a0, a1;
+        for ( int i=0 ; i<indexCount ; i++ ) {
+            unsigned long line = indexes[i];
+            NSColor *highlight = !exists( diffs->added, line ) ? nil :
+                exists( diffs->modified, line ) ? gitDiffPlugin.modifiedColor : gitDiffPlugin.addedColor;
+            CGRect a0, a1;
 
-        if ( highlight ) {
-            [highlight setFill];
-            [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
-            NSRectFill( CGRectInset(a0,1.,1.) );
+            if ( highlight ) {
+                [highlight setFill];
+                [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
+                NSRectFill( CGRectInset(a0,1.,1.) );
+            }
+            else if ( exists( diffs->deleted, line ) ) {
+                [gitDiffPlugin.deletedColor setFill];
+                [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
+                a0.size.height = 1.;
+                NSRectFill( a0 );
+            }
         }
-        else if ( exists( diffs->deleted, line ) ) {
-            [gitDiffPlugin.deletedColor setFill];
-            [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
-            a0.size.height = 1.;
-            NSRectFill( a0 );
-        }
+
+        [self unlockFocus];
     }
-
-    [self unlockFocus];
 
     [self gitdiff_drawLineNumbersInSidebarRect:rect foldedIndexes:indexes count:indexCount
                              linesToInvert:a3 linesToReplace:a4 getParaRectBlock:rectBlock];
@@ -213,8 +220,8 @@ inline bool exists( const _M &map, const _K &key ) {
         GitFileDiffs *diffs = [self gitDiffs];
         unsigned long line = [self lineNumberForPoint:p0];
 
-        if ( exists( diffs->deleted, line ) ||
-                (exists( diffs->added, line ) && exists( diffs->modified, line )) ) {
+        if ( diffs && (exists( diffs->deleted, line ) ||
+                (exists( diffs->added, line ) && exists( diffs->modified, line ))) ) {
             CGRect a0, a1;
             unsigned long start = diffs->modified[line];
             [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:start];
