@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#31 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#34 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -17,8 +17,9 @@ static GitDiff *gitDiffPlugin;
 
 @interface GitDiff()
 
+@property IBOutlet NSColorWell *modifiedColor, *addedColor, *deletedColor, *popoverColor;
+
 @property NSMutableDictionary *diffsByFile;
-@property NSColor *deletedColor, *modifiedColor, *addedColor;
 @property NSText *popover;
 
 @end
@@ -33,12 +34,14 @@ static GitDiff *gitDiffPlugin;
 		gitDiffPlugin = [[self alloc] init];
         gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
 
-        gitDiffPlugin.deletedColor  = [NSColor colorWithCalibratedRed:1. green:.5 blue:.5 alpha:1.];
-        gitDiffPlugin.modifiedColor = [NSColor colorWithCalibratedRed:1. green:.9 blue:.6 alpha:1.];
-        gitDiffPlugin.addedColor    = [NSColor colorWithCalibratedRed:.7 green:1. blue:.7 alpha:1.];
+        if ( ![NSBundle loadNibNamed:@"GitDiff" owner:gitDiffPlugin] )
+            NSLog( @"GitDiff Plugin: Could not load colors interface." );
 
         gitDiffPlugin.popover = [[NSText alloc] initWithFrame:NSZeroRect];
-        gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.modifiedColor;
+        gitDiffPlugin.popover.wantsLayer = YES;
+        gitDiffPlugin.popover.layer.cornerRadius = 6.0;
+
+        gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.popoverColor.color;
 
         Class aClass = NSClassFromString(@"DVTTextSidebarView");
         [self swizzleClass:aClass
@@ -62,7 +65,7 @@ static GitDiff *gitDiffPlugin;
 #import <string>
 
 template <class _M,typename _K>
-inline bool exists( const _M &map, const _K &key ) {
+static bool exists( const _M &map, const _K &key ) {
     return map.find(key) != map.end();
 }
 
@@ -188,7 +191,7 @@ inline bool exists( const _M &map, const _K &key ) {
         for ( int i=0 ; i<indexCount ; i++ ) {
             unsigned long line = indexes[i];
             NSColor *highlight = !exists( diffs->added, line ) ? nil :
-                exists( diffs->modified, line ) ? gitDiffPlugin.modifiedColor : gitDiffPlugin.addedColor;
+                exists( diffs->modified, line ) ? gitDiffPlugin.modifiedColor.color : gitDiffPlugin.addedColor.color;
             CGRect a0, a1;
 
             if ( highlight ) {
@@ -197,7 +200,7 @@ inline bool exists( const _M &map, const _K &key ) {
                 NSRectFill( CGRectInset(a0,1.,1.) );
             }
             else if ( exists( diffs->deleted, line ) ) {
-                [gitDiffPlugin.deletedColor setFill];
+                [gitDiffPlugin.deletedColor.color setFill];
                 [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
                 a0.size.height = 1.;
                 NSRectFill( a0 );
@@ -211,6 +214,7 @@ inline bool exists( const _M &map, const _K &key ) {
                              linesToInvert:a3 linesToReplace:a4 getParaRectBlock:rectBlock];
 }
 
+// mouseover line number for deleted
 - (id)gitdiff_annotationAtSidebarPoint:(CGPoint)p0
 {
     NSText *popover = gitDiffPlugin.popover;

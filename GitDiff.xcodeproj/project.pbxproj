@@ -10,6 +10,7 @@
 		7F2EB89C145057F200E97A87 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F2EB899145057EA00E97A87 /* AppKit.framework */; };
 		BB5CF63A1912DCC50052E10B /* GitDiff.mm in Sources */ = {isa = PBXBuildFile; fileRef = BB5CF6391912DCC50052E10B /* GitDiff.mm */; };
 		BB82F0CD1913D15F0015AE7A /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = BB82F0CC1913D15F0015AE7A /* README.md */; };
+		BBE2C2191986D85D007D9B5E /* GitDiff.xib in Resources */ = {isa = PBXBuildFile; fileRef = BBE2C2181986D85C007D9B5E /* GitDiff.xib */; };
 		DA1B5D020E64686800921439 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 089C1672FE841209C02AAC07 /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
@@ -21,6 +22,7 @@
 		BB5CF6381912DCC50052E10B /* GitDiff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GitDiff.h; sourceTree = "<group>"; };
 		BB5CF6391912DCC50052E10B /* GitDiff.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GitDiff.mm; sourceTree = "<group>"; };
 		BB82F0CC1913D15F0015AE7A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		BBE2C2181986D85C007D9B5E /* GitDiff.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GitDiff.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 			children = (
 				BB5CF6381912DCC50052E10B /* GitDiff.h */,
 				BB5CF6391912DCC50052E10B /* GitDiff.mm */,
+				BBE2C2181986D85C007D9B5E /* GitDiff.xib */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -137,6 +140,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB82F0CD1913D15F0015AE7A /* README.md in Resources */,
+				BBE2C2191986D85D007D9B5E /* GitDiff.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
