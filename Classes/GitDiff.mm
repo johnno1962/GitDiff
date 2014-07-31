@@ -14,6 +14,7 @@
 #import <objc/runtime.h>
 
 static GitDiff *gitDiffPlugin;
+static Class sourceDocClass;
 
 @interface GitDiff()
 
@@ -32,24 +33,29 @@ static GitDiff *gitDiffPlugin;
 	dispatch_once(&onceToken, ^{
 
 		gitDiffPlugin = [[self alloc] init];
-        gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
+		gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
 
-        if ( ![NSBundle loadNibNamed:@"GitDiff" owner:gitDiffPlugin] )
-            NSLog( @"GitDiff Plugin: Could not load colors interface." );
+		if ( ![NSBundle loadNibNamed:@"GitDiff" owner:gitDiffPlugin] )
+		    NSLog( @"GitDiff Plugin: Could not load colors interface." );
 
-        gitDiffPlugin.popover = [[NSText alloc] initWithFrame:NSZeroRect];
-        gitDiffPlugin.popover.wantsLayer = YES;
-        gitDiffPlugin.popover.layer.cornerRadius = 6.0;
+		gitDiffPlugin.popover = [[NSText alloc] initWithFrame:NSZeroRect];
+		gitDiffPlugin.popover.wantsLayer = YES;
+		gitDiffPlugin.popover.layer.cornerRadius = 6.0;
 
-        gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.popoverColor.color;
+		gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.popoverColor.color;
 
-        Class aClass = NSClassFromString(@"DVTTextSidebarView");
-        [self swizzleClass:aClass
-                  exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
-                      with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)];
-        [self swizzleClass:aClass
-                  exchange:@selector(annotationAtSidebarPoint:)
-                      with:@selector(gitdiff_annotationAtSidebarPoint:)];
+		Class aClass = NSClassFromString(@"DVTTextSidebarView");
+		[self swizzleClass:aClass
+		          exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
+		              with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)];
+		[self swizzleClass:aClass
+		          exchange:@selector(annotationAtSidebarPoint:)
+		              with:@selector(gitdiff_annotationAtSidebarPoint:)];
+
+		sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
+		[self swizzleClass:[NSDocument class]
+		          exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
+		              with:@selector(gitdiff_finishSavingToURL:ofType:forSaveOperation:changeCount:)];
     });
 }
 
@@ -133,31 +139,25 @@ static bool exists( const _M &map, const _K &key ) {
 
 @end
 
-@interface NSDocument(GitDiff)
-- (void)_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3;
-@end
-
-@interface IDESourceCodeDocument : NSDocument
-@end
-
-@implementation IDESourceCodeDocument(GitDiff)
+@implementation NSDocument(IDESourceCodeDocument)
 
 // source file is being saved
-- (void)_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3
+- (void)gitdiff_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3
 {
-    [super _finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
-    [[GitFileDiffs alloc] performSelectorInBackground:@selector(initFile:) withObject:[[self fileURL] path]];
+    [self gitdiff_finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
+    if ( [self isKindOfClass:sourceDocClass] )
+        [[GitFileDiffs alloc] performSelectorInBackground:@selector(initFile:) withObject:[[self fileURL] path]];
 }
 
 @end
 
-@interface DVTTextSidebarView : NSRulerView
+@interface  NSRulerView(DVTTextSidebarView)
 - (void)getParagraphRect:(CGRect *)a0 firstLineRect:(CGRect *)a1 forLineNumber:(unsigned long)a2;
 - (unsigned long)lineNumberForPoint:(CGPoint)a0;
 - (double)sidebarWidth;
 @end
 
-@implementation DVTTextSidebarView(GitDiff)
+@implementation NSRulerView(GitDiff)
 
 - (NSTextView *)sourceTextView
 {
@@ -170,7 +170,7 @@ static bool exists( const _M &map, const _K &key ) {
     if ( ![sourceTextView respondsToSelector:@selector(delegate)] )
         return nil;
 
-    IDESourceCodeDocument *doc = [(id)[sourceTextView delegate] document];
+    NSDocument *doc = [(id)[sourceTextView delegate] document];
     NSString *path = [[doc fileURL] path];
 
     GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
@@ -214,7 +214,7 @@ static bool exists( const _M &map, const _K &key ) {
                              linesToInvert:a3 linesToReplace:a4 getParaRectBlock:rectBlock];
 }
 
-// mouseover line number for deleted
+// mouseover line number for deleted code
 - (id)gitdiff_annotationAtSidebarPoint:(CGPoint)p0
 {
     NSText *popover = gitDiffPlugin.popover;
@@ -234,7 +234,7 @@ static bool exists( const _M &map, const _K &key ) {
             deleted = deleted.substr(0,deleted.length()-1);
 
             popover.font = [self sourceTextView].font;
-            popover.string = [NSMutableString stringWithUTF8String:deleted.c_str()];
+            popover.string = [NSString stringWithUTF8String:deleted.c_str()];
             popover.frame = NSMakeRect(self.frame.size.width+1., a0.origin.y, 700., 10.);
             [popover sizeToFit];
 
