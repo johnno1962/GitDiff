@@ -197,7 +197,9 @@ static bool exists( const _M &map, const _K &key ) {
             if ( highlight ) {
                 [highlight setFill];
                 [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
-                [[NSBezierPath bezierPathWithRect:CGRectInset(a0,1.,1.)] fill];
+                a0.origin.x += (a0.size.width - 4);
+                a0.size.width = 2.;
+                NSRectFill( a0 );
             }
             else if ( exists( diffs->deleted, line ) ) {
                 [gitDiffPlugin.deletedColor.color setFill];
