@@ -227,7 +227,8 @@ static bool exists( const _M &map, const _K &key ) {
         unsigned long line = [self lineNumberForPoint:p0];
 
         if ( diffs && (exists( diffs->deleted, line ) ||
-                (exists( diffs->added, line ) && exists( diffs->modified, line ))) ) {
+                (exists( diffs->added, line ) && exists( diffs->modified, line ))) )
+		{
             CGRect a0, a1;
             unsigned long start = diffs->modified[line];
             [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:start];
@@ -235,10 +236,16 @@ static bool exists( const _M &map, const _K &key ) {
             std::string deleted = diffs->deleted[start];
             deleted = deleted.substr(0,deleted.length()-1);
 
-            popover.font = [self sourceTextView].font;
-            popover.string = [NSString stringWithUTF8String:deleted.c_str()];
-            popover.frame = NSMakeRect(self.frame.size.width+1., a0.origin.y, 700., 10.);
-            [popover sizeToFit];
+			popover.string = [NSString stringWithUTF8String:deleted.c_str()];
+
+			NSTextView *sourceTextView = [self sourceTextView];
+            popover.font = sourceTextView.font;
+
+			CGFloat lineHeight = sourceTextView.font.ascender + sourceTextView.font.descender + sourceTextView.font.leading;
+			CGFloat w = NSWidth(sourceTextView.frame);
+			CGFloat h = lineHeight * [[popover.string componentsSeparatedByString:@"\n"] count];
+
+            popover.frame = NSMakeRect(self.frame.size.width+1., a0.origin.y, w, h);
 
             [self.scrollView addSubview:popover];
             return annotation;
