@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#35 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#38 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -44,6 +44,11 @@ static Class sourceDocClass;
 
 		gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.popoverColor.color;
 
+		sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
+		[self swizzleClass:[NSDocument class]
+		          exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
+		              with:@selector(gitdiff_finishSavingToURL:ofType:forSaveOperation:changeCount:)];
+
 		Class aClass = NSClassFromString(@"DVTTextSidebarView");
 		[self swizzleClass:aClass
 		          exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
@@ -52,10 +57,10 @@ static Class sourceDocClass;
 		          exchange:@selector(annotationAtSidebarPoint:)
 		              with:@selector(gitdiff_annotationAtSidebarPoint:)];
 
-		sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
-		[self swizzleClass:[NSDocument class]
-		          exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
-		              with:@selector(gitdiff_finishSavingToURL:ofType:forSaveOperation:changeCount:)];
+        aClass = NSClassFromString(@"DVTMarkedScroller");
+		[self swizzleClass:aClass
+		          exchange:@selector(drawKnobSlotInRect:highlight:)
+		              with:@selector(gitdiff_drawKnobSlotInRect:highlight:)];
     });
 }
 
@@ -81,6 +86,7 @@ static bool exists( const _M &map, const _K &key ) {
     std::map<unsigned long,unsigned long> modified; // line number mods started by line
     std::map<unsigned long,BOOL> added; // line has been added or modified
     time_t updated;
+    int lines;
 }
 @end
 
@@ -151,17 +157,11 @@ static bool exists( const _M &map, const _K &key ) {
 
 @end
 
-@interface  NSRulerView(DVTTextSidebarView)
-- (void)getParagraphRect:(CGRect *)a0 firstLineRect:(CGRect *)a1 forLineNumber:(unsigned long)a2;
-- (unsigned long)lineNumberForPoint:(CGPoint)a0;
-- (double)sidebarWidth;
-@end
-
-@implementation NSRulerView(GitDiff)
+@implementation NSView(GitDiffs)
 
 - (NSTextView *)sourceTextView
 {
-    return (NSTextView *)[(id)[self scrollView] delegate];
+    return [[self superview] respondsToSelector:@selector(delegate)] ? (NSTextView *)[(id)[self superview] delegate] : nil;
 }
 
 - (GitFileDiffs *)gitDiffs
@@ -179,6 +179,16 @@ static bool exists( const _M &map, const _K &key ) {
 
     return diffs;
 }
+
+@end
+
+@interface  NSRulerView(DVTTextSidebarView)
+- (void)getParagraphRect:(CGRect *)a0 firstLineRect:(CGRect *)a1 forLineNumber:(unsigned long)a2;
+- (unsigned long)lineNumberForPoint:(CGPoint)a0;
+- (double)sidebarWidth;
+@end
+
+@implementation NSRulerView(GitDiff)
 
 // the line numbers sidebar is being redrawn
 - (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect foldedIndexes:(unsigned long *)indexes count:(unsigned long)indexCount linesToInvert:(id)a3 linesToReplace:(id)a4 getParaRectBlock:rectBlock
@@ -249,6 +259,41 @@ static bool exists( const _M &map, const _K &key ) {
         [popover removeFromSuperview];
 
     return annotation;
+}
+
+@end
+
+@interface NSScroller(DVTMarkedScroller)
+@end
+
+@implementation NSScroller(GitDiff)
+
+- (void)gitdiff_drawKnobSlotInRect:(CGRect)a0 highlight:(char)a1 {
+    [self gitdiff_drawKnobSlotInRect:a0 highlight:a1];
+    GitFileDiffs *diffs = [self gitDiffs];
+
+    if ( diffs  ) {
+        if ( !diffs->lines ) {
+            NSString *source = [self sourceTextView].string;
+            NSUInteger pos = 0;
+            while ( (pos = [source rangeOfCharacterFromSet:[NSCharacterSet newlineCharacterSet]
+                   options:0 range:NSMakeRange(pos+1,source.length-pos-1)].location) != NSNotFound )
+                diffs->lines++;
+        }
+
+        [self lockFocus];
+
+        for ( const auto &added : diffs->added ) {
+            unsigned long line = added.first;
+            NSColor *highlight = exists( diffs->modified, line ) ?
+                gitDiffPlugin.modifiedColor.color : gitDiffPlugin.addedColor.color;
+
+            [highlight setFill];
+            NSRectFill( NSMakeRect(0, self.frame.size.height*line/diffs->lines, 3., 1.) );
+        }
+
+        [self unlockFocus];
+    }
 }
 
 @end
