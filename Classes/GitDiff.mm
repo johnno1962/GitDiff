@@ -87,7 +87,7 @@ static bool exists( const _M &map, const _K &key ) {
 @implementation GitFileDiffs
 
 // parse "git diff" output
-- initFile:(NSString *)path
+- (id)initWithFilepath:(NSString *)path
 {
     if ( (self = [super init]) ) {
 
@@ -109,26 +109,32 @@ static bool exists( const _M &map, const _K &key ) {
                         sscanf( buffer, "@@ -%d,%d +%d,%d @@", &d1, &d2, &line, &d3 );
                         break;
                     }
-                    case '-':
+                    case '-': {
                         deleted[deline] += buffer+1;
                         modified[modline++] = deline;
                         delcnt++;
                         break;
-                    case '+':
+					}
+                    case '+': {
                         added[line] = YES;
-                        if ( ++addcnt > delcnt )
+                        if ( ++addcnt > delcnt ) {
                             modified.erase(line);
-                    default:
+						}
+					}
+                    default: {
                         deline = modline = ++line;
-                        if ( buffer[0] != '+' )
+                        if ( buffer[0] != '+' ) {
                             delcnt = addcnt = 0;
+						}
+					}
                 }
             }
 
             pclose(diffs);
         }
-        else
+        else {
             NSLog( @"GitDiff Plugin: Could not run diff command: %@", command );
+		}
 
         updated = time(NULL);
         gitDiffPlugin.diffsByFile[path] = self;
@@ -145,8 +151,9 @@ static bool exists( const _M &map, const _K &key ) {
 - (void)gitdiff_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3
 {
     [self gitdiff_finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
-    if ( [self isKindOfClass:sourceDocClass] )
-        [[GitFileDiffs alloc] performSelectorInBackground:@selector(initFile:) withObject:[[self fileURL] path]];
+    if ( [self isKindOfClass:sourceDocClass] ) {
+        [[GitFileDiffs alloc] performSelectorInBackground:@selector(initWithFilepath:) withObject:[[self fileURL] path]];
+	}
 }
 
 @end
@@ -167,21 +174,28 @@ static bool exists( const _M &map, const _K &key ) {
 - (GitFileDiffs *)gitDiffs
 {
     NSTextView *sourceTextView = [self sourceTextView];
-    if ( ![sourceTextView respondsToSelector:@selector(delegate)] )
+    if ( ![sourceTextView respondsToSelector:@selector(delegate)] ) {
         return nil;
+	}
 
     NSDocument *doc = [(id)[sourceTextView delegate] document];
     NSString *path = [[doc fileURL] path];
 
     GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
-    if ( !diffs || time(NULL) > diffs->updated + 60 )
-        diffs = [[GitFileDiffs alloc] initFile:path];
+    if ( !diffs || time(NULL) > diffs->updated + 60 ) {
+        diffs = [[GitFileDiffs alloc] initWithFilepath:path];
+	}
 
     return diffs;
 }
 
 // the line numbers sidebar is being redrawn
-- (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect foldedIndexes:(unsigned long *)indexes count:(unsigned long)indexCount linesToInvert:(id)a3 linesToReplace:(id)a4 getParaRectBlock:rectBlock
+- (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect
+							   foldedIndexes:(unsigned long *)indexes
+									   count:(unsigned long)indexCount
+							   linesToInvert:(id)a3
+							  linesToReplace:(id)a4
+							getParaRectBlock:rectBlock
 {
     GitFileDiffs *diffs = [self gitDiffs];
 
@@ -212,8 +226,12 @@ static bool exists( const _M &map, const _K &key ) {
         [self unlockFocus];
     }
 
-    [self gitdiff_drawLineNumbersInSidebarRect:rect foldedIndexes:indexes count:indexCount
-                             linesToInvert:a3 linesToReplace:a4 getParaRectBlock:rectBlock];
+    [self gitdiff_drawLineNumbersInSidebarRect:rect
+								 foldedIndexes:indexes
+										 count:indexCount
+								 linesToInvert:a3
+								linesToReplace:a4
+							  getParaRectBlock:rectBlock];
 }
 
 // mouseover line number for deleted code
@@ -252,8 +270,9 @@ static bool exists( const _M &map, const _K &key ) {
         }
     }
 
-    if ( [popover superview] )
+    if ( [popover superview] ) {
         [popover removeFromSuperview];
+	}
 
     return annotation;
 }
