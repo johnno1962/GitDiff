@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#40 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#41 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -12,6 +12,8 @@
 
 #import "GitDiff.h"
 #import <objc/runtime.h>
+
+#define REFRESH_INTERVAL 60
 
 static GitDiff *gitDiffPlugin;
 static Class sourceDocClass;
@@ -57,7 +59,7 @@ static Class sourceDocClass;
 		          exchange:@selector(annotationAtSidebarPoint:)
 		              with:@selector(gitdiff_annotationAtSidebarPoint:)];
 
-        aClass = NSClassFromString(@"DVTMarkedScroller");
+		aClass = NSClassFromString(@"DVTMarkedScroller");
 		[self swizzleClass:aClass
 		          exchange:@selector(drawKnobSlotInRect:highlight:)
 		              with:@selector(gitdiff_drawKnobSlotInRect:highlight:)];
@@ -120,19 +122,19 @@ static bool exists( const _M &map, const _K &key ) {
                         modified[modline++] = deline;
                         delcnt++;
                         break;
-					}
+                    }
                     case '+': {
                         added[line] = YES;
                         if ( ++addcnt > delcnt ) {
                             modified.erase(line);
-						}
-					}
+                        }
+                    }
                     default: {
                         deline = modline = ++line;
                         if ( buffer[0] != '+' ) {
                             delcnt = addcnt = 0;
-						}
-					}
+                        }
+                    }
                 }
             }
 
@@ -140,7 +142,7 @@ static bool exists( const _M &map, const _K &key ) {
         }
         else {
             NSLog( @"GitDiff Plugin: Could not run diff command: %@", command );
-		}
+        }
 
         updated = time(NULL);
         gitDiffPlugin.diffsByFile[path] = self;
@@ -159,7 +161,7 @@ static bool exists( const _M &map, const _K &key ) {
     [self gitdiff_finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
     if ( [self isKindOfClass:sourceDocClass] ) {
         [[GitFileDiffs alloc] performSelectorInBackground:@selector(initWithFilepath:) withObject:[[self fileURL] path]];
-	}
+    }
 }
 
 @end
@@ -176,15 +178,15 @@ static bool exists( const _M &map, const _K &key ) {
     NSTextView *sourceTextView = [self sourceTextView];
     if ( ![sourceTextView respondsToSelector:@selector(delegate)] ) {
         return nil;
-	}
+    }
 
     NSDocument *doc = [(id)[sourceTextView delegate] document];
     NSString *path = [[doc fileURL] path];
 
     GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
-    if ( !diffs || time(NULL) > diffs->updated + 60 ) {
+    if ( !diffs || time(NULL) > diffs->updated + REFRESH_INTERVAL ) {
         diffs = [[GitFileDiffs alloc] initWithFilepath:path];
-	}
+    }
 
     return diffs;
 }
@@ -201,11 +203,11 @@ static bool exists( const _M &map, const _K &key ) {
 
 // the line numbers sidebar is being redrawn
 - (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect
-							   foldedIndexes:(unsigned long *)indexes
-									   count:(unsigned long)indexCount
-							   linesToInvert:(id)a3
-							  linesToReplace:(id)a4
-							getParaRectBlock:rectBlock
+                               foldedIndexes:(unsigned long *)indexes
+                                       count:(unsigned long)indexCount
+                               linesToInvert:(id)a3
+                              linesToReplace:(id)a4
+                            getParaRectBlock:rectBlock
 {
     GitFileDiffs *diffs = [self gitDiffs];
 
@@ -237,11 +239,11 @@ static bool exists( const _M &map, const _K &key ) {
     }
 
     [self gitdiff_drawLineNumbersInSidebarRect:rect
-								 foldedIndexes:indexes
-										 count:indexCount
-								 linesToInvert:a3
-								linesToReplace:a4
-							  getParaRectBlock:rectBlock];
+                                 foldedIndexes:indexes
+                                         count:indexCount
+                                 linesToInvert:a3
+                                linesToReplace:a4
+                              getParaRectBlock:rectBlock];
 }
 
 // mouseover line number for deleted code
@@ -256,7 +258,7 @@ static bool exists( const _M &map, const _K &key ) {
 
         if ( diffs && (exists( diffs->deleted, line ) ||
                 (exists( diffs->added, line ) && exists( diffs->modified, line ))) )
-		{
+        {
             CGRect a0, a1;
             unsigned long start = diffs->modified[line];
             [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:start];
@@ -264,14 +266,14 @@ static bool exists( const _M &map, const _K &key ) {
             std::string deleted = diffs->deleted[start];
             deleted = deleted.substr(0,deleted.length()-1);
 
-			popover.string = [NSString stringWithUTF8String:deleted.c_str()];
+            popover.string = [NSString stringWithUTF8String:deleted.c_str()];
 
-			NSTextView *sourceTextView = [self sourceTextView];
+            NSTextView *sourceTextView = [self sourceTextView];
             popover.font = sourceTextView.font;
 
-			CGFloat lineHeight = sourceTextView.font.ascender + sourceTextView.font.descender + sourceTextView.font.leading;
-			CGFloat w = NSWidth(sourceTextView.frame);
-			CGFloat h = lineHeight * [[popover.string componentsSeparatedByString:@"\n"] count];
+            CGFloat lineHeight = sourceTextView.font.ascender + sourceTextView.font.descender + sourceTextView.font.leading;
+            CGFloat w = NSWidth(sourceTextView.frame);
+            CGFloat h = lineHeight * [[popover.string componentsSeparatedByString:@"\n"] count];
 
             popover.frame = NSMakeRect(self.frame.size.width+1., a0.origin.y, w, h);
 
@@ -282,7 +284,7 @@ static bool exists( const _M &map, const _K &key ) {
 
     if ( [popover superview] ) {
         [popover removeFromSuperview];
-	}
+    }
 
     return annotation;
 }
