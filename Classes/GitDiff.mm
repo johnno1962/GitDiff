@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#38 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#40 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -289,9 +289,6 @@ static bool exists( const _M &map, const _K &key ) {
 
 @end
 
-@interface NSScroller(DVTMarkedScroller)
-@end
-
 @implementation NSScroller(GitDiff)
 
 - (void)gitdiff_drawKnobSlotInRect:(CGRect)a0 highlight:(char)a1 {
@@ -300,11 +297,7 @@ static bool exists( const _M &map, const _K &key ) {
 
     if ( diffs  ) {
         if ( !diffs->lines ) {
-            NSString *source = [self sourceTextView].string;
-            NSUInteger pos = 0;
-            while ( (pos = [source rangeOfCharacterFromSet:[NSCharacterSet newlineCharacterSet]
-                   options:0 range:NSMakeRange(pos+1,source.length-pos-1)].location) != NSNotFound )
-                diffs->lines++;
+            diffs->lines = [[[self sourceTextView].string componentsSeparatedByString:@"\n"] count];
         }
 
         [self lockFocus];
@@ -316,6 +309,14 @@ static bool exists( const _M &map, const _K &key ) {
 
             [highlight setFill];
             NSRectFill( NSMakeRect(0, self.frame.size.height*line/diffs->lines, 3., 1.) );
+        }
+
+        for ( const auto &deleted : diffs->deleted ) {
+            unsigned long line = deleted.first;
+            if ( !exists( diffs->added, line ) ) {
+                [gitDiffPlugin.deletedColor.color setFill];
+                NSRectFill( NSMakeRect(0, self.frame.size.height*line/diffs->lines, 3., 1.) );
+            }
         }
 
         [self unlockFocus];
