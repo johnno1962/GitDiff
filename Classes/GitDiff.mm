@@ -300,7 +300,8 @@ static bool exists( const _M &map, const _K &key ) {
             diffs->lines = [[[self sourceTextView].string componentsSeparatedByString:@"\n"] count];
         }
 
-        [self lockFocus];
+// This lockFocus may cause crashes.
+//        [self lockFocus];
 
         for ( const auto &added : diffs->added ) {
             unsigned long line = added.first;
@@ -319,7 +320,7 @@ static bool exists( const _M &map, const _K &key ) {
             }
         }
 
-        [self unlockFocus];
+//        [self unlockFocus];
     }
 }
 
