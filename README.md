@@ -1,11 +1,11 @@
 # GitDiff Xcode Plugin
 
-With thanks to the person who suggested this plugin, GitDiff displays deltas against a git repo in the Xcode
+With thanks to the genius who suggested this plugin, GitDiff displays deltas against a git repo in the Xcode
 source editor once you've saved the file. To use, copy this repo to your machine, build it and restart Xcode.
 Differences should then be highlighted in orange for lines that have been modified and blue for new code.
 A red line indicates code has been removed. Hover over deleted/modified line number to see original source.
 
-![Icon](http://injectionforxcode.johnholdsworth.com/gitdiff.png)
+![Icon](http://injectionforxcode.johnholdsworth.com/gitdiff2.png)
 
 This Plugin is also available through the [Alcatraz](http://alcatraz.io/) meta-plugin and was developed using
 the [Xprobe Plugin](https://github.com/johnno1962/XprobePlugin) for Xcode plugin developers.
