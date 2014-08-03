@@ -84,11 +84,11 @@ static bool exists( const _M &map, const _K &key ) {
 
 @interface GitFileDiffs : NSObject {
 @public
-    std::map<unsigned long,std::string> deleted; // text deleted by line
-    std::map<unsigned long,unsigned long> modified; // line number mods started by line
-    std::map<unsigned long,BOOL> added; // line has been added or modified
+    std::map<NSUInteger,std::string> deleted; // text deleted by line
+    std::map<NSUInteger,NSUInteger> modified; // line number mods started by line
+    std::map<NSUInteger,BOOL> added; // line has been added or modified
+    NSUInteger lines;
     time_t updated;
-    int lines;
 }
 @end
 
@@ -156,7 +156,7 @@ static bool exists( const _M &map, const _K &key ) {
 @implementation NSDocument(IDESourceCodeDocument)
 
 // source file is being saved
-- (void)gitdiff_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(unsigned long)a2 changeCount:(id)a3
+- (void)gitdiff_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(NSUInteger)a2 changeCount:(id)a3
 {
     [self gitdiff_finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
     if ( [self isKindOfClass:sourceDocClass] ) {
@@ -193,9 +193,15 @@ static bool exists( const _M &map, const _K &key ) {
 
 @end
 
+@implementation NSString(GitDiff)
+- (NSUInteger)gdLineCount {
+    return [[self componentsSeparatedByString:@"\n"] count];
+}
+@end
+
 @interface  NSRulerView(DVTTextSidebarView)
-- (void)getParagraphRect:(CGRect *)a0 firstLineRect:(CGRect *)a1 forLineNumber:(unsigned long)a2;
-- (unsigned long)lineNumberForPoint:(CGPoint)a0;
+- (void)getParagraphRect:(CGRect *)a0 firstLineRect:(CGRect *)a1 forLineNumber:(NSUInteger)a2;
+- (NSUInteger)lineNumberForPoint:(CGPoint)a0;
 - (double)sidebarWidth;
 @end
 
@@ -203,8 +209,8 @@ static bool exists( const _M &map, const _K &key ) {
 
 // the line numbers sidebar is being redrawn
 - (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect
-                               foldedIndexes:(unsigned long *)indexes
-                                       count:(unsigned long)indexCount
+                               foldedIndexes:(NSUInteger *)indexes
+                                       count:(NSUInteger)indexCount
                                linesToInvert:(id)a3
                               linesToReplace:(id)a4
                             getParaRectBlock:rectBlock
@@ -214,8 +220,8 @@ static bool exists( const _M &map, const _K &key ) {
     if ( diffs ) {
         [self lockFocus];
 
-        for ( int i=0 ; i<indexCount ; i++ ) {
-            unsigned long line = indexes[i];
+        for ( NSUInteger i=0 ; i<indexCount ; i++ ) {
+            NSUInteger line = indexes[i];
             NSColor *highlight = !exists( diffs->added, line ) ? nil :
                 exists( diffs->modified, line ) ? gitDiffPlugin.modifiedColor.color : gitDiffPlugin.addedColor.color;
             CGRect a0, a1;
@@ -223,7 +229,7 @@ static bool exists( const _M &map, const _K &key ) {
             if ( highlight ) {
                 [highlight setFill];
                 [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
-                a0.origin.x += (a0.size.width - 2);
+                a0.origin.x += (a0.size.width - 2.);
                 a0.size.width = 2.;
                 NSRectFill( a0 );
             }
@@ -249,18 +255,18 @@ static bool exists( const _M &map, const _K &key ) {
 // mouseover line number for deleted code
 - (id)gitdiff_annotationAtSidebarPoint:(CGPoint)p0
 {
-    NSText *popover = gitDiffPlugin.popover;
     id annotation = [self gitdiff_annotationAtSidebarPoint:p0];
+    NSText *popover = gitDiffPlugin.popover;
 
     if ( !annotation && p0.x < self.sidebarWidth ) {
         GitFileDiffs *diffs = [self gitDiffs];
-        unsigned long line = [self lineNumberForPoint:p0];
+        NSUInteger line = [self lineNumberForPoint:p0];
 
         if ( diffs && (exists( diffs->deleted, line ) ||
                 (exists( diffs->added, line ) && exists( diffs->modified, line ))) )
         {
             CGRect a0, a1;
-            unsigned long start = diffs->modified[line];
+            NSUInteger start = diffs->modified[line];
             [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:start];
 
             std::string deleted = diffs->deleted[start];
@@ -269,13 +275,13 @@ static bool exists( const _M &map, const _K &key ) {
             popover.string = [NSString stringWithUTF8String:deleted.c_str()];
 
             NSTextView *sourceTextView = [self sourceTextView];
-            popover.font = sourceTextView.font;
+            NSFont *font = popover.font = sourceTextView.font;
 
-            CGFloat lineHeight = sourceTextView.font.ascender + sourceTextView.font.descender + sourceTextView.font.leading;
+            CGFloat lineHeight = font.ascender + font.descender + font.leading;
             CGFloat w = NSWidth(sourceTextView.frame);
-            CGFloat h = lineHeight * [[popover.string componentsSeparatedByString:@"\n"] count];
+            CGFloat h = lineHeight * [popover.string gdLineCount];
 
-            popover.frame = NSMakeRect(self.frame.size.width+1., a0.origin.y, w, h);
+            popover.frame = NSMakeRect(NSWidth(self.frame)+1., a0.origin.y, w, h);
 
             [self.scrollView addSubview:popover];
             return annotation;
@@ -293,35 +299,35 @@ static bool exists( const _M &map, const _K &key ) {
 
 @implementation NSScroller(GitDiff)
 
-- (void)gitdiff_drawKnobSlotInRect:(CGRect)a0 highlight:(char)a1 {
+- (void)gitdiff_drawKnobSlotInRect:(CGRect)a0 highlight:(char)a1
+{
     [self gitdiff_drawKnobSlotInRect:a0 highlight:a1];
+
     GitFileDiffs *diffs = [self gitDiffs];
 
     if ( diffs  ) {
         if ( !diffs->lines ) {
-            diffs->lines = [[[self sourceTextView].string componentsSeparatedByString:@"\n"] count];
+            diffs->lines = [[self sourceTextView].string gdLineCount];
         }
 
-        [self lockFocus];
+        CGFloat scale = NSHeight(self.frame)/diffs->lines;
 
         for ( const auto &added : diffs->added ) {
-            unsigned long line = added.first;
+            NSUInteger line = added.first;
             NSColor *highlight = exists( diffs->modified, line ) ?
                 gitDiffPlugin.modifiedColor.color : gitDiffPlugin.addedColor.color;
 
             [highlight setFill];
-            NSRectFill( NSMakeRect(0, self.frame.size.height*line/diffs->lines, 3., 1.) );
+            NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
         }
 
         for ( const auto &deleted : diffs->deleted ) {
-            unsigned long line = deleted.first;
+            NSUInteger line = deleted.first;
             if ( !exists( diffs->added, line ) ) {
                 [gitDiffPlugin.deletedColor.color setFill];
-                NSRectFill( NSMakeRect(0, self.frame.size.height*line/diffs->lines, 3., 1.) );
+                NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
             }
         }
-
-        [self unlockFocus];
     }
 }
 
