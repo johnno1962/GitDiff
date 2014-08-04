@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#46 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#49 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -56,7 +56,12 @@ static Class sourceDocClass;
 		          exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
 		              with:@selector(gitdiff_finishSavingToURL:ofType:forSaveOperation:changeCount:)];
 
-		Class aClass = NSClassFromString(@"DVTTextSidebarView");
+		Class aClass = NSClassFromString(@"IDEEditorDocument");
+		[self swizzleClass:aClass
+		          exchange:@selector(closeToRevert)
+		              with:@selector(gitdiff_closeToRevert)];
+
+		aClass = NSClassFromString(@"DVTTextSidebarView");
 		[self swizzleClass:aClass
 		          exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
 		              with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)];
@@ -168,14 +173,24 @@ static bool exists( const _M &map, const _K &key ) {
 
 @implementation NSDocument(IDESourceCodeDocument)
 
-// source file is being saved
-- (void)gitdiff_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(NSUInteger)a2 changeCount:(id)a3
-{
-    [self gitdiff_finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
+- (void)gitdiffUpdate {
     if ( [self isKindOfClass:sourceDocClass] ) {
         // could be synchronous with a very small delay building
         [GitFileDiffs asyncUpdateFilepath:[[self fileURL] path]];
     }
+}
+
+// source file is being saved
+- (void)gitdiff_finishSavingToURL:(id)a0 ofType:(id)a1 forSaveOperation:(NSUInteger)a2 changeCount:(id)a3
+{
+    [self gitdiff_finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
+    [self gitdiffUpdate];
+}
+
+// revert on change on disk
+- (void)gitdiff_closeToRevert {
+    [self gitdiff_closeToRevert];
+    [self gitdiffUpdate];
 }
 
 @end
@@ -345,6 +360,7 @@ static bool exists( const _M &map, const _K &key ) {
 
 @implementation NSScroller(GitDiff)
 
+// scroll bar overview
 - (void)gitdiff_drawKnobSlotInRect:(CGRect)a0 highlight:(char)a1
 {
     [self gitdiff_drawKnobSlotInRect:a0 highlight:a1];
