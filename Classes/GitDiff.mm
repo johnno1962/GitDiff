@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#42 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#46 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -13,6 +13,11 @@
 #import "GitDiff.h"
 #import <objc/runtime.h>
 
+extern "C" {
+    #import "DiffMatchPatch.h"
+    #import "DMDiff.h"
+}
+
 #define REFRESH_INTERVAL 60
 
 static GitDiff *gitDiffPlugin;
@@ -20,10 +25,10 @@ static Class sourceDocClass;
 
 @interface GitDiff()
 
-@property IBOutlet NSColorWell *modifiedColor, *addedColor, *deletedColor, *popoverColor;
+@property IBOutlet NSColorWell *modifiedColor, *addedColor, *deletedColor, *popoverColor, *changedColor;
 
 @property NSMutableDictionary *diffsByFile;
-@property NSText *popover;
+@property NSTextView *popover;
 
 @end
 
@@ -40,7 +45,7 @@ static Class sourceDocClass;
 		if ( ![NSBundle loadNibNamed:@"GitDiff" owner:gitDiffPlugin] )
 		    NSLog( @"GitDiff Plugin: Could not load colors interface." );
 
-		gitDiffPlugin.popover = [[NSText alloc] initWithFrame:NSZeroRect];
+		gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
 		gitDiffPlugin.popover.wantsLayer = YES;
 		gitDiffPlugin.popover.layer.cornerRadius = 6.0;
 
@@ -85,14 +90,20 @@ static bool exists( const _M &map, const _K &key ) {
 @interface GitFileDiffs : NSObject {
 @public
     std::map<NSUInteger,std::string> deleted; // text deleted by line
-    std::map<NSUInteger,NSUInteger> modified; // line number mods started by line
-    std::map<NSUInteger,BOOL> added; // line has been added or modified
+    std::map<NSUInteger,NSUInteger> modified; // line number delta started by line
+    std::map<NSUInteger,std::string> added; // line has been added or modified
     NSUInteger lines;
     time_t updated;
 }
 @end
 
 @implementation GitFileDiffs
+
++ (void)asyncUpdateFilepath:(NSString *)path {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        (void)[[self alloc] initWithFilepath:path];
+    });
+}
 
 // parse "git diff" output
 - (id)initWithFilepath:(NSString *)path
@@ -105,36 +116,38 @@ static bool exists( const _M &map, const _K &key ) {
 
         if ( diffs ) {
             char buffer[10000];
-            int line, deline, modline, delcnt, addcnt;
+            int line, start, modline, delcnt, addcnt;
 
             for ( int i=0 ; i<4 ; i++ )
                 fgets(buffer, sizeof buffer, diffs);
 
             while ( fgets(buffer, sizeof buffer, diffs) ) {
                 switch ( buffer[0] ) {
-                    case '@': {
-                        int d1, d2, d3;
-                        sscanf( buffer, "@@ -%d,%d +%d,%d @@", &d1, &d2, &line, &d3 );
+
+                    case '@':
+                        sscanf( buffer, "@@ -%*d,%*d +%d,%*d @@", &line );
                         break;
-                    }
-                    case '-': {
-                        deleted[deline] += buffer+1;
-                        modified[modline++] = deline;
+
+                    case '-':
+                        deleted[start] += buffer+1;
+                        modified[modline++] = start;
                         delcnt++;
                         break;
-                    }
-                    case '+': {
-                        added[line] = YES;
+
+                    case '+':
+                        added[line] = "";
+                        if ( addcnt < delcnt ) {
+                            added[start] += buffer+1;
+                        }
                         if ( ++addcnt > delcnt ) {
                             modified.erase(line);
                         }
-                    }
-                    default: {
-                        deline = modline = ++line;
+                    default:
+                        modline = ++line;
                         if ( buffer[0] != '+' ) {
                             delcnt = addcnt = 0;
+                            start = line;
                         }
-                    }
                 }
             }
 
@@ -160,7 +173,8 @@ static bool exists( const _M &map, const _K &key ) {
 {
     [self gitdiff_finishSavingToURL:a0 ofType:a1 forSaveOperation:a2 changeCount:a3];
     if ( [self isKindOfClass:sourceDocClass] ) {
-        [[GitFileDiffs alloc] performSelectorInBackground:@selector(initWithFilepath:) withObject:[[self fileURL] path]];
+        // could be synchronous with a very small delay building
+        [GitFileDiffs asyncUpdateFilepath:[[self fileURL] path]];
     }
 }
 
@@ -184,8 +198,12 @@ static bool exists( const _M &map, const _K &key ) {
     NSString *path = [[doc fileURL] path];
 
     GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
-    if ( !diffs || time(NULL) > diffs->updated + REFRESH_INTERVAL ) {
+    if ( !diffs ) {
         diffs = [[GitFileDiffs alloc] initWithFilepath:path];
+    }
+    else if ( diffs->updated + REFRESH_INTERVAL < time(NULL) ) {
+        diffs->updated = time(NULL);
+        [GitFileDiffs asyncUpdateFilepath:path];
     }
 
     return diffs;
@@ -256,7 +274,7 @@ static bool exists( const _M &map, const _K &key ) {
 - (id)gitdiff_annotationAtSidebarPoint:(CGPoint)p0
 {
     id annotation = [self gitdiff_annotationAtSidebarPoint:p0];
-    NSText *popover = gitDiffPlugin.popover;
+    NSTextView *popover = gitDiffPlugin.popover;
 
     if ( !annotation && p0.x < self.sidebarWidth ) {
         GitFileDiffs *diffs = [self gitDiffs];
@@ -272,7 +290,35 @@ static bool exists( const _M &map, const _K &key ) {
             std::string deleted = diffs->deleted[start];
             deleted = deleted.substr(0,deleted.length()-1);
 
-            popover.string = [NSString stringWithUTF8String:deleted.c_str()];
+            NSString *before = [NSString stringWithUTF8String:deleted.c_str()];
+
+            if ( exists( diffs->added, start ) ) {
+                NSDictionary *attributes = @{NSForegroundColorAttributeName : gitDiffPlugin.changedColor.color};
+                NSMutableAttributedString *attrstr = [[NSMutableAttributedString alloc] init];
+
+                std::string added = diffs->added[start];
+                added = added.substr(0,added.length()-1);
+
+                NSString *after = [NSString stringWithUTF8String:added.c_str()];
+
+                for ( DMDiff *diff : diff_diffsBetweenTexts( before, after ) ) {
+                    if ( diff.operation == DIFF_INSERT ) {
+                        continue;
+                    }
+
+                    NSMutableAttributedString *next = [[NSMutableAttributedString alloc] initWithString:diff.text];
+                    if ( diff.operation == DIFF_DELETE ) {
+                        [next setAttributes:attributes range:NSMakeRange(0, next.length)];
+                    }
+
+                    [attrstr appendAttributedString:next];
+                }
+
+                [[popover textStorage] setAttributedString:attrstr];
+            }
+            else {
+                [[popover textStorage] setAttributedString:[[NSAttributedString alloc] initWithString:before]];
+            }
 
             NSTextView *sourceTextView = [self sourceTextView];
             NSFont *font = popover.font = sourceTextView.font;
