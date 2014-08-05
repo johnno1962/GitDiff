@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#49 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#50 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -21,13 +21,13 @@ extern "C" {
 #define REFRESH_INTERVAL 60
 
 static GitDiff *gitDiffPlugin;
-static Class sourceDocClass;
 
 @interface GitDiff()
 
 @property IBOutlet NSColorWell *modifiedColor, *addedColor, *deletedColor, *popoverColor, *changedColor;
 
 @property NSMutableDictionary *diffsByFile;
+@property Class sourceDocClass;
 @property NSTextView *popover;
 
 @end
@@ -51,7 +51,7 @@ static Class sourceDocClass;
 
 		gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.popoverColor.color;
 
-		sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
+		gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
 		[self swizzleClass:[NSDocument class]
 		          exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
 		              with:@selector(gitdiff_finishSavingToURL:ofType:forSaveOperation:changeCount:)];
@@ -174,7 +174,7 @@ static bool exists( const _M &map, const _K &key ) {
 @implementation NSDocument(IDESourceCodeDocument)
 
 - (void)gitdiffUpdate {
-    if ( [self isKindOfClass:sourceDocClass] ) {
+    if ( [self isKindOfClass:gitDiffPlugin.sourceDocClass] ) {
         // could be synchronous with a very small delay building
         [GitFileDiffs asyncUpdateFilepath:[[self fileURL] path]];
     }
@@ -249,9 +249,7 @@ static bool exists( const _M &map, const _K &key ) {
                             getParaRectBlock:rectBlock
 {
     GitFileDiffs *diffs = [self gitDiffs];
-
     if ( diffs ) {
-        [self lockFocus];
 
         for ( NSUInteger i=0 ; i<indexCount ; i++ ) {
             NSUInteger line = indexes[i];
@@ -273,8 +271,6 @@ static bool exists( const _M &map, const _K &key ) {
                 NSRectFill( a0 );
             }
         }
-
-        [self unlockFocus];
     }
 
     [self gitdiff_drawLineNumbersInSidebarRect:rect
