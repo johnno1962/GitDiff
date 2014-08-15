@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#50 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#51 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -110,59 +110,75 @@ static bool exists( const _M &map, const _K &key ) {
     });
 }
 
+static jmp_buf jmp_env;
+
+static void handler( int sig ) {
+    longjmp( jmp_env, sig );
+}
+
 // parse "git diff" output
 - (id)initWithFilepath:(NSString *)path
 {
     if ( (self = [super init]) ) {
-
         NSString *command = [NSString stringWithFormat:@"cd \"%@\" && /usr/bin/git diff \"%@\"",
                              [path stringByDeletingLastPathComponent], path];
-        FILE *diffs = popen([command UTF8String], "r");
+        void (*savepipe)(int) = signal( SIGPIPE, handler );
 
-        if ( diffs ) {
-            char buffer[10000];
-            int line, start, modline, delcnt, addcnt;
+        int signum;
+        switch ( signum = setjmp( jmp_env ) ) {
+            case 0: {
+                FILE *diffs = popen([command UTF8String], "r");
 
-            for ( int i=0 ; i<4 ; i++ )
-                fgets(buffer, sizeof buffer, diffs);
+                if ( diffs ) {
+                    char buffer[10000];
+                    int line, start, modline, delcnt, addcnt;
 
-            while ( fgets(buffer, sizeof buffer, diffs) ) {
-                switch ( buffer[0] ) {
+                    for ( int i=0 ; i<4 ; i++ )
+                        fgets(buffer, sizeof buffer, diffs);
 
-                    case '@':
-                        sscanf( buffer, "@@ -%*d,%*d +%d,%*d @@", &line );
-                        break;
+                    while ( fgets(buffer, sizeof buffer, diffs) ) {
+                        switch ( buffer[0] ) {
 
-                    case '-':
-                        deleted[start] += buffer+1;
-                        modified[modline++] = start;
-                        delcnt++;
-                        break;
+                            case '@':
+                                sscanf( buffer, "@@ -%*d,%*d +%d,%*d @@", &line );
+                                break;
 
-                    case '+':
-                        added[line] = "";
-                        if ( addcnt < delcnt ) {
-                            added[start] += buffer+1;
+                            case '-':
+                                deleted[start] += buffer+1;
+                                modified[modline++] = start;
+                                delcnt++;
+                                break;
+
+                            case '+':
+                                added[line] = "";
+                                if ( addcnt < delcnt ) {
+                                    added[start] += buffer+1;
+                                }
+                                if ( ++addcnt > delcnt ) {
+                                    modified.erase(line);
+                                }
+                            default:
+                                modline = ++line;
+                                if ( buffer[0] != '+' ) {
+                                    delcnt = addcnt = 0;
+                                    start = line;
+                                }
                         }
-                        if ( ++addcnt > delcnt ) {
-                            modified.erase(line);
-                        }
-                    default:
-                        modline = ++line;
-                        if ( buffer[0] != '+' ) {
-                            delcnt = addcnt = 0;
-                            start = line;
-                        }
+                    }
+                    
+                    pclose(diffs);
+                }
+                else {
+                    NSLog( @"GitDiff Plugin: Could not run diff command: %@", command );
                 }
             }
-
-            pclose(diffs);
-        }
-        else {
-            NSLog( @"GitDiff Plugin: Could not run diff command: %@", command );
+                break;
+            default:
+                NSLog( @"GitDiff Plugin: SIGNAL: %d", signum );
         }
 
         updated = time(NULL);
+        signal( SIGPIPE, savepipe );
         gitDiffPlugin.diffsByFile[path] = self;
     }
 
