@@ -5,28 +5,29 @@
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="5056"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="GitDiff">
+        <customObject id="-2" userLabel="File's Owner" customClass="GitDiffColorsWindowController">
             <connections>
-                <outlet property="addedColor" destination="ZC2-6H-YkT" id="cC0-GK-rIJ"/>
-                <outlet property="changedColor" destination="pGA-CC-lLn" id="pmQ-W1-nX0"/>
-                <outlet property="deletedColor" destination="Wik-La-fuR" id="pfs-CP-0KX"/>
-                <outlet property="modifiedColor" destination="rIO-tM-r5P" id="c7G-Qo-Igf"/>
-                <outlet property="popoverColor" destination="4Mw-Js-TIM" id="McT-2e-KMo"/>
+                <outlet property="addedColorWell" destination="ZC2-6H-YkT" id="dzZ-mK-jSq"/>
+                <outlet property="changedColorWell" destination="pGA-CC-lLn" id="O3Q-J0-aIV"/>
+                <outlet property="deletedColorWell" destination="Wik-La-fuR" id="4tS-ZN-neG"/>
+                <outlet property="modifiedColorWell" destination="rIO-tM-r5P" id="8xM-W1-wm9"/>
+                <outlet property="popoverColorWell" destination="4Mw-Js-TIM" id="pbB-0t-9u0"/>
+                <outlet property="window" destination="QvC-M9-y7g" id="KEY-uM-a6f"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application"/>
-        <window title="   Colors" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="QvC-M9-y7g">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+        <window title="GitDiff Colors" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="QvC-M9-y7g">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="196" y="240" width="158" height="247"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1178"/>
+            <rect key="contentRect" x="196" y="240" width="192" height="303"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1028"/>
             <view key="contentView" id="EiT-Mj-1SZ">
-                <rect key="frame" x="0.0" y="0.0" width="158" height="247"/>
+                <rect key="frame" x="0.0" y="0.0" width="192" height="303"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ase-Fk-alb">
-                        <rect key="frame" x="24" y="207" width="64" height="17"/>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ase-Fk-alb">
+                        <rect key="frame" x="24" y="263" width="64" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Modified:" id="3Wb-FX-2Jb">
                             <font key="font" metaFont="system"/>
@@ -34,13 +35,16 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="rIO-tM-r5P">
-                        <rect key="frame" x="94" y="204" width="44" height="23"/>
+                    <colorWell translatesAutoresizingMaskIntoConstraints="NO" id="rIO-tM-r5P">
+                        <rect key="frame" x="112" y="260" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <color key="color" red="0.99228006601333618" green="0.60685473680496216" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="color" red="1" green="0.5" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <connections>
+                            <action selector="gitDiffColorWellChanged:" target="-2" id="2sw-bf-PnT"/>
+                        </connections>
                     </colorWell>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gTP-Ck-opl">
-                        <rect key="frame" x="24" y="160" width="49" height="17"/>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gTP-Ck-opl">
+                        <rect key="frame" x="24" y="216" width="49" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Added:" id="bhD-Pa-k41">
                             <font key="font" metaFont="system"/>
@@ -48,13 +52,20 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZC2-6H-YkT">
-                        <rect key="frame" x="94" y="157" width="44" height="23"/>
+                    <colorWell translatesAutoresizingMaskIntoConstraints="NO" id="ZC2-6H-YkT">
+                        <rect key="frame" x="112" y="213" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="44" id="4xl-LU-BRZ"/>
+                            <constraint firstAttribute="height" constant="23" id="r5I-Ac-SEn"/>
+                        </constraints>
                         <color key="color" red="0.25353613495826721" green="0.65927296876907349" blue="0.69413512945175171" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <connections>
+                            <action selector="gitDiffColorWellChanged:" target="-2" id="QDo-8N-TCy"/>
+                        </connections>
                     </colorWell>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0Mz-J8-IR0">
-                        <rect key="frame" x="24" y="114" width="57" height="17"/>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="0Mz-J8-IR0">
+                        <rect key="frame" x="24" y="170" width="57" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Deleted:" id="g24-Lw-CKQ">
                             <font key="font" metaFont="system"/>
@@ -62,13 +73,19 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Wik-La-fuR">
-                        <rect key="frame" x="94" y="111" width="44" height="23"/>
+                    <colorWell translatesAutoresizingMaskIntoConstraints="NO" id="Wik-La-fuR">
+                        <rect key="frame" x="112" y="167" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="23" id="A1q-oT-y0p"/>
+                        </constraints>
                         <color key="color" red="1" green="0.5" blue="0.5" alpha="1" colorSpace="calibratedRGB"/>
+                        <connections>
+                            <action selector="gitDiffColorWellChanged:" target="-2" id="xrv-Rc-aOp"/>
+                        </connections>
                     </colorWell>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="TuV-zk-xlP">
-                        <rect key="frame" x="24" y="71" width="59" height="17"/>
+                        <rect key="frame" x="24" y="127" width="59" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Popover:" id="KjE-9l-FbH">
                             <font key="font" metaFont="system"/>
@@ -76,13 +93,16 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4Mw-Js-TIM">
-                        <rect key="frame" x="94" y="65" width="44" height="23"/>
+                    <colorWell translatesAutoresizingMaskIntoConstraints="NO" id="4Mw-Js-TIM">
+                        <rect key="frame" x="112" y="121" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <color key="color" red="1" green="0.90000000000000002" blue="0.59999999999999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <connections>
+                            <action selector="gitDiffColorWellChanged:" target="-2" id="sgu-yz-8Gt"/>
+                        </connections>
                     </colorWell>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HsR-qz-emX">
-                        <rect key="frame" x="24" y="27" width="64" height="17"/>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="HsR-qz-emX">
+                        <rect key="frame" x="24" y="83" width="64" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Changed:" id="N1r-Qw-Lvw">
                             <font key="font" metaFont="system"/>
@@ -90,12 +110,60 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pGA-CC-lLn">
-                        <rect key="frame" x="94" y="21" width="44" height="23"/>
+                    <colorWell translatesAutoresizingMaskIntoConstraints="NO" id="pGA-CC-lLn">
+                        <rect key="frame" x="112" y="77" width="44" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="23" id="6AG-gT-q0w"/>
+                        </constraints>
                         <color key="color" red="0.096385764087180248" green="0.18876769044360575" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <connections>
+                            <action selector="gitDiffColorWellChanged:" target="-2" id="Pdd-ys-pa4"/>
+                        </connections>
                     </colorWell>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Uck-rG-6sk">
+                        <rect key="frame" x="59" y="13" width="74" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <buttonCell key="cell" type="push" title="Reset" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="iv6-7C-QMM">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="gitDiffColorResetPressed:" target="-2" id="oh3-OP-Xkn"/>
+                        </connections>
+                    </button>
                 </subviews>
+                <constraints>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="width" secondItem="Wik-La-fuR" secondAttribute="width" id="9cC-zh-9PQ"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="top" secondItem="rIO-tM-r5P" secondAttribute="bottom" constant="24" id="CBf-pF-iPa"/>
+                    <constraint firstItem="rIO-tM-r5P" firstAttribute="centerY" secondItem="Ase-Fk-alb" secondAttribute="centerY" id="CmB-cV-sbd"/>
+                    <constraint firstItem="pGA-CC-lLn" firstAttribute="top" secondItem="HsR-qz-emX" secondAttribute="top" id="HpH-8R-tC9"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="width" secondItem="4Mw-Js-TIM" secondAttribute="width" id="IzM-xt-vKQ"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" constant="67" id="KAP-B4-4yK"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="leading" secondItem="rIO-tM-r5P" secondAttribute="leading" id="L5e-4t-S4T"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="leading" secondItem="pGA-CC-lLn" secondAttribute="leading" id="O3B-z4-6NG"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="centerY" secondItem="gTP-Ck-opl" secondAttribute="centerY" id="R8i-dY-PMt"/>
+                    <constraint firstItem="Wik-La-fuR" firstAttribute="centerY" secondItem="0Mz-J8-IR0" secondAttribute="centerY" id="RHZ-xV-lnX"/>
+                    <constraint firstItem="pGA-CC-lLn" firstAttribute="leading" secondItem="HsR-qz-emX" secondAttribute="trailing" constant="26" id="Una-ru-jTy"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="width" secondItem="rIO-tM-r5P" secondAttribute="width" id="VEe-1g-eXZ"/>
+                    <constraint firstItem="Uck-rG-6sk" firstAttribute="top" secondItem="pGA-CC-lLn" secondAttribute="bottom" constant="36" id="cFZ-Wi-eH0"/>
+                    <constraint firstAttribute="bottom" secondItem="pGA-CC-lLn" secondAttribute="bottom" constant="77" id="eEa-hi-n3a"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="leading" secondItem="gTP-Ck-opl" secondAttribute="trailing" constant="41" id="fdc-c9-apu"/>
+                    <constraint firstItem="Wik-La-fuR" firstAttribute="leading" secondItem="0Mz-J8-IR0" secondAttribute="trailing" constant="33" id="gaI-6n-o03"/>
+                    <constraint firstItem="rIO-tM-r5P" firstAttribute="leading" secondItem="Ase-Fk-alb" secondAttribute="trailing" constant="26" id="iD8-ib-2df"/>
+                    <constraint firstItem="Uck-rG-6sk" firstAttribute="centerX" secondItem="EiT-Mj-1SZ" secondAttribute="centerX" id="jLN-XJ-9N9"/>
+                    <constraint firstItem="pGA-CC-lLn" firstAttribute="top" secondItem="4Mw-Js-TIM" secondAttribute="bottom" constant="21" id="jwa-Pm-96n"/>
+                    <constraint firstItem="4Mw-Js-TIM" firstAttribute="top" secondItem="Wik-La-fuR" secondAttribute="bottom" constant="23" id="ltZ-rb-G6r"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="leading" secondItem="4Mw-Js-TIM" secondAttribute="leading" id="n52-mG-vb0"/>
+                    <constraint firstItem="rIO-tM-r5P" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" constant="20" symbolic="YES" id="pe3-4h-wwQ"/>
+                    <constraint firstItem="Wik-La-fuR" firstAttribute="top" secondItem="ZC2-6H-YkT" secondAttribute="bottom" constant="23" id="rsx-e6-max"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="leading" secondItem="Wik-La-fuR" secondAttribute="leading" id="uoX-J6-cLs"/>
+                    <constraint firstItem="ZC2-6H-YkT" firstAttribute="width" secondItem="pGA-CC-lLn" secondAttribute="width" id="v92-Wy-nu8"/>
+                    <constraint firstAttribute="trailing" secondItem="ZC2-6H-YkT" secondAttribute="trailing" constant="36" id="wUo-lg-eaz"/>
+                </constraints>
             </view>
         </window>
     </objects>
