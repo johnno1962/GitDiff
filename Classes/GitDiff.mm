@@ -12,6 +12,7 @@
 
 #import "GitDiff.h"
 #import <objc/runtime.h>
+#import "GitDiffColorsWindowController.h"
 
 extern "C" {
     #import "DiffMatchPatch.h"
@@ -24,11 +25,10 @@ static GitDiff *gitDiffPlugin;
 
 @interface GitDiff()
 
-@property IBOutlet NSColorWell *modifiedColor, *addedColor, *deletedColor, *popoverColor, *changedColor;
-
 @property NSMutableDictionary *diffsByFile;
 @property Class sourceDocClass;
 @property NSTextView *popover;
+@property GitDiffColorsWindowController *colorsWindowController;
 
 @end
 
@@ -38,18 +38,15 @@ static GitDiff *gitDiffPlugin;
 {
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-
 		gitDiffPlugin = [[self alloc] init];
+		gitDiffPlugin.colorsWindowController = [[GitDiffColorsWindowController alloc] initWithPluginBundle:plugin];
 		gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
-
-		if ( ![NSBundle loadNibNamed:@"GitDiff" owner:gitDiffPlugin] )
-		    NSLog( @"GitDiff Plugin: Could not load colors interface." );
-
+		    
+		[gitDiffPlugin insertMenuItems];
+        
 		gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
 		gitDiffPlugin.popover.wantsLayer = YES;
 		gitDiffPlugin.popover.layer.cornerRadius = 6.0;
-
-		gitDiffPlugin.popover.backgroundColor = gitDiffPlugin.popoverColor.color;
 
 		gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
 		[self swizzleClass:[NSDocument class]
@@ -80,6 +77,26 @@ static GitDiff *gitDiffPlugin;
 {
     method_exchangeImplementations(class_getInstanceMethod(aClass, origMethod),
                                    class_getInstanceMethod(aClass, altMethod));
+}
+
+- (void)insertMenuItems
+{
+    NSMenu *editorMenu = [[[NSApp mainMenu] itemWithTitle:@"Edit"] submenu];
+    
+    if ( editorMenu ) {
+        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"GitDiff Colors..."
+                                                          action:@selector(gitDiffColorsMenuItemSelected:)
+                                                   keyEquivalent:@""];
+        menuItem.target = self;
+        
+        [editorMenu addItem:[NSMenuItem separatorItem]];
+        [editorMenu addItem:menuItem];
+    }
+}
+
+- (void)gitDiffColorsMenuItemSelected:(id)sender
+{
+    [gitDiffPlugin.colorsWindowController showWindow:self];
 }
 
 @end
@@ -270,7 +287,7 @@ static void handler( int sig ) {
         for ( NSUInteger i=0 ; i<indexCount ; i++ ) {
             NSUInteger line = indexes[i];
             NSColor *highlight = !exists( diffs->added, line ) ? nil :
-                exists( diffs->modified, line ) ? gitDiffPlugin.modifiedColor.color : gitDiffPlugin.addedColor.color;
+                exists( diffs->modified, line ) ? gitDiffPlugin.colorsWindowController.modifiedColor : gitDiffPlugin.colorsWindowController.addedColor;
             CGRect a0, a1;
 
             if ( highlight ) {
@@ -281,7 +298,7 @@ static void handler( int sig ) {
                 NSRectFill( a0 );
             }
             else if ( exists( diffs->deleted, line ) ) {
-                [gitDiffPlugin.deletedColor.color setFill];
+                [gitDiffPlugin.colorsWindowController.deletedColor setFill];
                 [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
                 a0.size.height = 1.;
                 NSRectFill( a0 );
@@ -302,6 +319,7 @@ static void handler( int sig ) {
 {
     id annotation = [self gitdiff_annotationAtSidebarPoint:p0];
     NSTextView *popover = gitDiffPlugin.popover;
+    popover.backgroundColor = gitDiffPlugin.colorsWindowController.popoverColor;
 
     if ( !annotation && p0.x < self.sidebarWidth ) {
         GitFileDiffs *diffs = [self gitDiffs];
@@ -320,7 +338,7 @@ static void handler( int sig ) {
             NSString *before = [NSString stringWithUTF8String:deleted.c_str()];
 
             if ( exists( diffs->added, start ) ) {
-                NSDictionary *attributes = @{NSForegroundColorAttributeName : gitDiffPlugin.changedColor.color};
+                NSDictionary *attributes = @{NSForegroundColorAttributeName : gitDiffPlugin.colorsWindowController.changedColor};
                 NSMutableAttributedString *attrstr = [[NSMutableAttributedString alloc] init];
 
                 std::string added = diffs->added[start];
@@ -389,7 +407,7 @@ static void handler( int sig ) {
         for ( const auto &added : diffs->added ) {
             NSUInteger line = added.first;
             NSColor *highlight = exists( diffs->modified, line ) ?
-                gitDiffPlugin.modifiedColor.color : gitDiffPlugin.addedColor.color;
+                gitDiffPlugin.colorsWindowController.modifiedColor : gitDiffPlugin.colorsWindowController.addedColor;
 
             [highlight setFill];
             NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
@@ -398,7 +416,7 @@ static void handler( int sig ) {
         for ( const auto &deleted : diffs->deleted ) {
             NSUInteger line = deleted.first;
             if ( !exists( diffs->added, line ) ) {
-                [gitDiffPlugin.deletedColor.color setFill];
+                [gitDiffPlugin.colorsWindowController.deletedColor setFill];
                 NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
             }
         }

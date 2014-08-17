@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		7F2EB89C145057F200E97A87 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F2EB899145057EA00E97A87 /* AppKit.framework */; };
+		9F18A2F319A094D300CB9ED8 /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9F18A2F219A094D300CB9ED8 /* Defaults.plist */; };
+		9FD45A1819A0913600E924E0 /* GitDiffColorsWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9FD45A1719A0913600E924E0 /* GitDiffColorsWindowController.m */; };
 		BB5CF63A1912DCC50052E10B /* GitDiff.mm in Sources */ = {isa = PBXBuildFile; fileRef = BB5CF6391912DCC50052E10B /* GitDiff.mm */; };
 		BB7877DA198F04E60025E56F /* DMPatch.m in Sources */ = {isa = PBXBuildFile; fileRef = BBDDCEEE198EF4570012A010 /* DMPatch.m */; };
 		BB82F0CD1913D15F0015AE7A /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = BB82F0CC1913D15F0015AE7A /* README.md */; };
@@ -24,6 +26,9 @@
 		7F2EB899145057EA00E97A87 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		8D5B49B6048680CD000E48DA /* GitDiff.xcplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GitDiff.xcplugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D5B49B7048680CD000E48DA /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9F18A2F219A094D300CB9ED8 /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Defaults.plist; sourceTree = "<group>"; };
+		9FD45A1619A0913600E924E0 /* GitDiffColorsWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GitDiffColorsWindowController.h; sourceTree = "<group>"; };
+		9FD45A1719A0913600E924E0 /* GitDiffColorsWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GitDiffColorsWindowController.m; sourceTree = "<group>"; };
 		BB5CF6381912DCC50052E10B /* GitDiff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GitDiff.h; sourceTree = "<group>"; };
 		BB5CF6391912DCC50052E10B /* GitDiff.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GitDiff.mm; sourceTree = "<group>"; };
 		BB82F0CC1913D15F0015AE7A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
@@ -82,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				8D5B49B7048680CD000E48DA /* Info.plist */,
+				9F18A2F219A094D300CB9ED8 /* Defaults.plist */,
 				BB82F0CC1913D15F0015AE7A /* README.md */,
 			);
 			name = Resources;
@@ -101,6 +107,8 @@
 				BB5CF6381912DCC50052E10B /* GitDiff.h */,
 				BB5CF6391912DCC50052E10B /* GitDiff.mm */,
 				BBE2C2181986D85C007D9B5E /* GitDiff.xib */,
+				9FD45A1619A0913600E924E0 /* GitDiffColorsWindowController.h */,
+				9FD45A1719A0913600E924E0 /* GitDiffColorsWindowController.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -180,6 +188,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F18A2F319A094D300CB9ED8 /* Defaults.plist in Resources */,
 				BB95DB10198F031500694DEF /* LICENSE in Resources */,
 				BB82F0CD1913D15F0015AE7A /* README.md in Resources */,
 				BBE2C2191986D85D007D9B5E /* GitDiff.xib in Resources */,
@@ -198,6 +207,7 @@
 				BB5CF63A1912DCC50052E10B /* GitDiff.mm in Sources */,
 				BB7877DA198F04E60025E56F /* DMPatch.m in Sources */,
 				BBDDCEF3198EF4570012A010 /* DiffMatchPatch.m in Sources */,
+				9FD45A1819A0913600E924E0 /* GitDiffColorsWindowController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

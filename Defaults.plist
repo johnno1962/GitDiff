@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>GitDiffModifiedColor</key>
+	<string>1 0.576 0 1</string>
+	<key>GitDiffAddedColor</key>
+	<string>0.253 0.659 0.694 1</string>
+	<key>GitDiffDeletedColor</key>
+	<string>1 0.584 0.571 1</string>
+	<key>GitDiffPopoverColor</key>
+	<string>1 0.914 0.662 1</string>
+	<key>GitDiffChangedColor</key>
+	<string>0.129 0.313 1 1</string>
+</dict>
+</plist>
