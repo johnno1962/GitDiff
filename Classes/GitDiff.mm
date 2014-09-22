@@ -45,8 +45,6 @@ static GitDiff *gitDiffPlugin;
 		[gitDiffPlugin insertMenuItems];
         
 		gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
-		gitDiffPlugin.popover.wantsLayer = YES;
-		gitDiffPlugin.popover.layer.cornerRadius = 6.0;
 
 		gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
 		[self swizzleClass:[NSDocument class]
