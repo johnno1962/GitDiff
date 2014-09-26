@@ -82,7 +82,7 @@ static GitDiff *gitDiffPlugin;
     NSMenu *editorMenu = [[[NSApp mainMenu] itemWithTitle:@"Edit"] submenu];
     
     if ( editorMenu ) {
-        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"GitDiff Colors..."
+        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"GitDiff Configuration..."
                                                           action:@selector(gitDiffColorsMenuItemSelected:)
                                                    keyEquivalent:@""];
         menuItem.target = self;
