@@ -138,16 +138,20 @@ Gw
                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </box>
                     <button id="9nh-Qh-lfO">
-                        <rect key="frame" x="18" y="18" width="155" height="18"/>
+                        <rect key="frame" x="18" y="18" width="144" height="18"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <buttonCell key="cell" type="check" title="Discrete gutter marks" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="RRc-k9-8bH">
+                        <buttonCell key="cell" type="check" title="Subtle gutter marks" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="RRc-k9-8bH">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                             <font key="font" metaFont="system"/>
                         </buttonCell>
+                        <connections>
+                            <binding destination="Y8c-8q-f8n" name="value" keyPath="values" id="Y6p-El-FN4"/>
+                        </connections>
                     </button>
                 </subviews>
             </view>
             <point key="canvasLocation" x="279" y="317"/>
         </window>
+        <userDefaultsController representsSharedInstance="YES" id="Y8c-8q-f8n"/>
     </objects>
 </document>
