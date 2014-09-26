@@ -1,5 +1,5 @@
 //
-//  GitDelta.mm
+//  GitDiff.mm
 //  Git difference highlighter plugin.
 //
 //  Repo: https://github.com/johnno1962/GitDiff
@@ -75,6 +75,20 @@ static GitDiff *gitDiffPlugin;
 {
     method_exchangeImplementations(class_getInstanceMethod(aClass, origMethod),
                                    class_getInstanceMethod(aClass, altMethod));
+}
+
+- (instancetype)init
+{
+    self = [super init];
+    if (!self) return nil;
+    
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    
+    if (![userDefaults objectForKey:@"GitDiffGutterMode"]) {
+        [userDefaults setInteger:GitDiffGutterTypeDefault forKey:@"GitDiffGutterMode"];
+    }
+
+    return self;
 }
 
 - (void)insertMenuItems
@@ -291,8 +305,21 @@ static void handler( int sig ) {
             if ( highlight ) {
                 [highlight setFill];
                 [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
-                a0.origin.x += (a0.size.width - 2.);
-                a0.size.width = 2.;
+                
+                double gutterSize;
+                NSInteger gutterMode = [[NSUserDefaults standardUserDefaults] integerForKey:@"GitDiffGutterMode"];
+                
+                switch (gutterMode) {
+                    case GitDiffGutterTypeVerbose:
+                        gutterSize = 28.f;
+                        break;
+                    case GitDiffGutterTypeDefault:
+                        gutterSize = 2.;
+                        break;
+                }
+                
+                a0.origin.x += (a0.size.width - gutterSize);
+                a0.size.width = gutterSize;
                 NSRectFill( a0 );
             }
             else if ( exists( diffs->deleted, line ) ) {
