@@ -32,9 +32,7 @@ NSString *const GitDiffChangedColorKey  = @"GitDiffChangedColor";
 @implementation GitDiffColorsWindowController
 
 - (instancetype)initWithPluginBundle:(NSBundle *)bundle {
-    
-    
-    
+
     NSString *nibPath = [bundle pathForResource:@"GitDiff" ofType:@"nib"];
     if (!nibPath) {
         NSLog( @"GitDiff Plugin: Could not load colors interface." );
