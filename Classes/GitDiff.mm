@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#52 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#54 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -311,7 +311,7 @@ static void handler( int sig ) {
                 
                 switch (gutterMode) {
                     case GitDiffGutterTypeVerbose:
-                        gutterSize = 28.f;
+                        gutterSize = a0.size.width;
                         break;
                     case GitDiffGutterTypeDefault:
                         gutterSize = 2.;
@@ -320,7 +320,7 @@ static void handler( int sig ) {
                 
                 a0.origin.x += (a0.size.width - gutterSize);
                 a0.size.width = gutterSize;
-                NSRectFill( a0 );
+                [[NSBezierPath bezierPathWithRect:a0] fill];
             }
             else if ( exists( diffs->deleted, line ) ) {
                 [gitDiffPlugin.colorsWindowController.deletedColor setFill];
