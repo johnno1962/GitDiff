@@ -20,14 +20,14 @@
         <window title="GitDiff Configuration" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="196" y="240" width="308" height="190"/>
+            <rect key="contentRect" x="196" y="240" width="308" height="202"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="878"/>
             <view key="contentView" id="EiT-Mj-1SZ">
-                <rect key="frame" x="0.0" y="5" width="308" height="190"/>
+                <rect key="frame" x="0.0" y="5" width="308" height="202"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <box autoresizesSubviews="NO" title="Colors" borderType="line" id="Ivu-Kd-Qvr">
-                        <rect key="frame" x="17" y="38" width="274" height="132"/>
+                        <rect key="frame" x="17" y="50" width="274" height="132"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <view key="contentView">
                             <rect key="frame" x="1" y="1" width="272" height="116"/>
@@ -137,20 +137,35 @@ Gw
                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </box>
-                    <button id="9nh-Qh-lfO">
-                        <rect key="frame" x="18" y="18" width="144" height="18"/>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="aVx-1I-iMp">
+                        <rect key="frame" x="34" y="24" width="91" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <buttonCell key="cell" type="check" title="Subtle gutter marks" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="RRc-k9-8bH">
-                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Gutter marks:" id="FKM-2f-yPZ">
                             <font key="font" metaFont="system"/>
-                        </buttonCell>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <popUpButton verticalHuggingPriority="750" id="nV0-ew-buy">
+                        <rect key="frame" x="129" y="17" width="145" height="26"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="6ZP-Tm-stV">
+                            <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="menu"/>
+                            <menu key="menu" id="Qsk-Pr-4rV">
+                                <items>
+                                    <menuItem title="Subtle" id="idD-Z5-fK9"/>
+                                    <menuItem title="Verbose" id="Ivn-9Z-cbq"/>
+                                </items>
+                            </menu>
+                        </popUpButtonCell>
                         <connections>
-                            <binding destination="Y8c-8q-f8n" name="value" keyPath="values" id="Y6p-El-FN4"/>
+                            <binding destination="Y8c-8q-f8n" name="selectedIndex" keyPath="values.GitDiffGutterMode" id="ka5-nQ-F3G"/>
                         </connections>
-                    </button>
+                    </popUpButton>
                 </subviews>
             </view>
-            <point key="canvasLocation" x="279" y="317"/>
+            <point key="canvasLocation" x="279" y="323"/>
         </window>
         <userDefaultsController representsSharedInstance="YES" id="Y8c-8q-f8n"/>
     </objects>
