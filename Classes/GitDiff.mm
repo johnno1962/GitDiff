@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#54 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#57 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -299,7 +299,8 @@ static void handler( int sig ) {
         for ( NSUInteger i=0 ; i<indexCount ; i++ ) {
             NSUInteger line = indexes[i];
             NSColor *highlight = !exists( diffs->added, line ) ? nil :
-                exists( diffs->modified, line ) ? gitDiffPlugin.colorsWindowController.modifiedColor : gitDiffPlugin.colorsWindowController.addedColor;
+                exists( diffs->modified, line ) ? gitDiffPlugin.colorsWindowController.modifiedColor :
+                                                    gitDiffPlugin.colorsWindowController.addedColor;
             CGRect a0, a1;
 
             if ( highlight ) {
@@ -427,21 +428,22 @@ static void handler( int sig ) {
             diffs->lines = [[self sourceTextView].string gdLineCount];
         }
 
+        NSColor *modifiedColor = gitDiffPlugin.colorsWindowController.modifiedColor;
+        NSColor *addedColor = gitDiffPlugin.colorsWindowController.addedColor;
         CGFloat scale = NSHeight(self.frame)/diffs->lines;
 
         for ( const auto &added : diffs->added ) {
             NSUInteger line = added.first;
-            NSColor *highlight = exists( diffs->modified, line ) ?
-                gitDiffPlugin.colorsWindowController.modifiedColor : gitDiffPlugin.colorsWindowController.addedColor;
+            NSColor *highlight = exists( diffs->modified, line ) ? modifiedColor : addedColor;
 
             [highlight setFill];
             NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
         }
 
+        [gitDiffPlugin.colorsWindowController.deletedColor setFill];
         for ( const auto &deleted : diffs->deleted ) {
             NSUInteger line = deleted.first;
             if ( !exists( diffs->added, line ) ) {
-                [gitDiffPlugin.colorsWindowController.deletedColor setFill];
                 NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
             }
         }
