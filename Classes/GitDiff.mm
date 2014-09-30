@@ -167,7 +167,7 @@ static bool exists( const _M &map, const _K &key ) {
     std::map<NSUInteger,std::string> deleted; // text deleted by line
     std::map<NSUInteger,NSUInteger> modified; // line number delta started by line
     std::map<NSUInteger,std::string> added; // line has been added or modified
-    NSMutableSet *diffLines;
+    NSSet *diffLines;
     NSUInteger lines;
     time_t updated;
 }
@@ -193,7 +193,7 @@ static void handler( int sig ) {
     if ( (self = [super init]) ) {
         NSString *command = [NSString stringWithFormat:@"cd \"%@\" && /usr/bin/git diff \"%@\"",
                              [path stringByDeletingLastPathComponent], path];
-        self->diffLines = [[NSMutableSet alloc] init];
+        NSMutableSet *diffSet = [[NSMutableSet alloc] init];
         void (*savepipe)(int) = signal( SIGPIPE, handler );
 
         int signum;
@@ -219,7 +219,7 @@ static void handler( int sig ) {
                                 deleted[start] += buffer+1;
                                 modified[modline++] = start;
                                 delcnt++;
-                                [self->diffLines addObject:@(start)];
+                                [diffSet addObject:@(start)];
                                 break;
 
                             case '+':
@@ -229,7 +229,7 @@ static void handler( int sig ) {
                                 }
                                 if ( ++addcnt > delcnt ) {
                                     modified.erase(line);
-                                    [self->diffLines addObject:@(start)];
+                                    [diffSet addObject:@(start)];
                                 }
                             default:
                                 modline = ++line;
@@ -251,6 +251,7 @@ static void handler( int sig ) {
                 NSLog( @"GitDiff Plugin: SIGNAL: %d", signum );
         }
 
+        self->diffLines = [diffSet copy];
         updated = time(NULL);
         signal( SIGPIPE, savepipe );
         gitDiffPlugin.diffsByFile[path] = self;
