@@ -51,9 +51,9 @@ static GitDiff *gitDiffPlugin;
 		gitDiffPlugin = [[self alloc] init];
 		gitDiffPlugin.colorsWindowController = [[GitDiffColorsWindowController alloc] initWithPluginBundle:plugin];
 		gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
-		    
+
 		[gitDiffPlugin insertMenuItems];
-        
+
 		gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
 
 		gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
@@ -91,9 +91,9 @@ static GitDiff *gitDiffPlugin;
 {
     self = [super init];
     if (!self) return nil;
-    
+
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    
+
     if (![userDefaults objectForKey:@"GitDiffGutterMode"]) {
         [userDefaults setInteger:GitDiffGutterTypeDefault forKey:@"GitDiffGutterMode"];
     }
@@ -104,13 +104,13 @@ static GitDiff *gitDiffPlugin;
 - (void)insertMenuItems
 {
     NSMenu *editorMenu = [[[NSApp mainMenu] itemWithTitle:@"Edit"] submenu];
-    
+
     if (!editorMenu) return;
-        
+
     NSMenu *gitDiffMenu = [[NSMenu alloc] initWithTitle:@"GitDiff"];
-    
+
     [editorMenu addItem:[NSMenuItem separatorItem]];
-    
+
     [gitDiffMenu addItem:({
         NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Configuration"
                                                           action:@selector(gitDiffColorsMenuItemSelected:)
@@ -118,9 +118,9 @@ static GitDiff *gitDiffPlugin;
         menuItem.target = self;
         menuItem;
     })];
-    
+
     [gitDiffMenu addItem:[NSMenuItem separatorItem]];
-    
+
     [gitDiffMenu addItem:({
         NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Next Change"
                                                           action:@selector(nextChangeAction:)
@@ -128,7 +128,7 @@ static GitDiff *gitDiffPlugin;
         menuItem.target = [GitChangeManager sharedManager];
         menuItem;
     })];
-    
+
     [gitDiffMenu addItem:({
         NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Previous Change"
                                                           action:@selector(previousChangeAction:)
@@ -136,14 +136,14 @@ static GitDiff *gitDiffPlugin;
         menuItem.target = [GitChangeManager sharedManager];
         menuItem;
     })];
-    
+
     NSString *versionString = [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:@"CFBundleVersion"];
     NSMenuItem *gitDiffMenuItem = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"GitDiff (%@)", versionString]
                                                             action:nil
                                                      keyEquivalent:@""];
-    
+
     gitDiffMenuItem.submenu = gitDiffMenu;
-        
+
     [editorMenu addItem:gitDiffMenuItem];
 }
 
@@ -239,7 +239,7 @@ static void handler( int sig ) {
                                 }
                         }
                     }
-                    
+
                     pclose(diffs);
                 }
                 else {
@@ -352,10 +352,10 @@ static void handler( int sig ) {
             if ( highlight ) {
                 [highlight setFill];
                 [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
-                
+
                 double gutterSize;
                 NSInteger gutterMode = [[NSUserDefaults standardUserDefaults] integerForKey:@"GitDiffGutterMode"];
-                
+
                 switch (gutterMode) {
                     case GitDiffGutterTypeVerbose:
                         gutterSize = a0.size.width;
@@ -364,7 +364,7 @@ static void handler( int sig ) {
                         gutterSize = 2.;
                         break;
                 }
-                
+
                 a0.origin.x += (a0.size.width - gutterSize);
                 a0.size.width = gutterSize;
                 [[NSBezierPath bezierPathWithRect:a0] fill];
@@ -506,7 +506,7 @@ static void handler( int sig ) {
     dispatch_once(&onceToken, ^{
         _sharedManager = [[GitChangeManager alloc] init];
     });
-    
+
     return _sharedManager;
 }
 
@@ -515,14 +515,14 @@ static void handler( int sig ) {
 - (id)currentEditor
 {
     NSWindowController *currentWindowController = [[NSApp keyWindow] windowController];
-    
+
     if ([currentWindowController isKindOfClass:NSClassFromString(@"IDEWorkspaceWindowController")]) {
         IDEWorkspaceWindowController *workspaceController = (IDEWorkspaceWindowController *)currentWindowController;
         IDEEditorArea *editorArea = [workspaceController editorArea];
         IDEEditorContext *editorContext = [editorArea lastActiveEditorContext];
         return [editorContext editor];
     }
-    
+
     return nil;
 }
 
@@ -532,12 +532,12 @@ static void handler( int sig ) {
         IDESourceCodeEditor *editor = [self currentEditor];
         return editor.textView;
     }
-    
+
     if ([[self currentEditor] isKindOfClass:NSClassFromString(@"IDESourceCodeComparisonEditor")]) {
         IDESourceCodeComparisonEditor *editor = [self currentEditor];
         return editor.keyTextView;
     }
-    
+
     return nil;
 }
 
@@ -565,23 +565,23 @@ static void handler( int sig ) {
 
     NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
     BOOL wrapAround = NO;
-    
+
     for (NSNumber *line in diffArray) {
         if ([currentLineNumber compare:line] == NSOrderedAscending) {
             long long gotoLine = [line longLongValue];
             if (gotoLine > 0) --gotoLine;
-            
+
             DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
             [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
             wrapAround = NO;
             break;
         }
     }
-    
+
     if (wrapAround) {
         long long gotoLine = [diffArray.firstObject longLongValue];
         if (gotoLine > 0) --gotoLine;
-        
+
         DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
         [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
     }
@@ -591,26 +591,26 @@ static void handler( int sig ) {
 {
     NSArray *diffArray = [self sortedDiffArray];
     if ([diffArray count] == 0) return;
-    
+
     NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
     BOOL wrapAround = NO;
-    
+
     for (NSNumber *line in [diffArray reverseObjectEnumerator]) {
         if ([currentLineNumber compare:line] == NSOrderedDescending) {
             long long gotoLine = [line longLongValue];
             if (gotoLine > 0) --gotoLine;
-            
+
             DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
             [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
             wrapAround = NO;
             break;
         }
     }
-    
+
     if (wrapAround) {
         long long gotoLine = [diffArray.lastObject longLongValue];
         if (gotoLine > 0) --gotoLine;
-        
+
         DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
         [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
     }
