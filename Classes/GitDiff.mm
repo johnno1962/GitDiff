@@ -507,6 +507,8 @@ static void handler( int sig ) {
     return _sharedManager;
 }
 
+#pragma mark - Getters
+
 - (id)currentEditor
 {
     NSWindowController *currentWindowController = [[NSApp keyWindow] windowController];
@@ -536,22 +538,32 @@ static void handler( int sig ) {
     return nil;
 }
 
-- (void)nextChangeAction:(id)sender
+- (NSArray *)sortedDiffArray
 {
     NSTextView *sourceTextView = [self textView];
-    if ( ![sourceTextView respondsToSelector:@selector(delegate)] ) return;
-    
+    if ( ![sourceTextView respondsToSelector:@selector(delegate)] ) return @[];
+
     NSDocument *doc = [(id)[sourceTextView delegate] document];
     NSString *path = [[doc fileURL] path];
     GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
-    
-    if (!diffs || [diffs->diffLines count] == 0) return;
-    
-    NSArray *sorted = [[diffs->diffLines allObjects] sortedArrayUsingSelector:@selector(compare:)];
+
+    if (!diffs || [diffs->diffLines count] == 0) return @[];
+
+    NSArray *sortedArray = [[diffs->diffLines allObjects] sortedArrayUsingSelector:@selector(compare:)];
+    return sortedArray;
+}
+
+#pragma mark - Actions
+
+- (void)nextChangeAction:(id)sender
+{
+    NSArray *diffArray = [self sortedDiffArray];
+    if ([diffArray count] == 0) return;
+
     NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
     BOOL wrapAround = NO;
     
-    for (NSNumber *line in sorted) {
+    for (NSNumber *line in diffArray) {
         if ([currentLineNumber compare:line] == NSOrderedAscending) {
             long long gotoLine = [line longLongValue];
             if (gotoLine > 0) --gotoLine;
@@ -564,7 +576,7 @@ static void handler( int sig ) {
     }
     
     if (wrapAround) {
-        long long gotoLine = [sorted.firstObject longLongValue];
+        long long gotoLine = [diffArray.firstObject longLongValue];
         if (gotoLine > 0) --gotoLine;
         
         DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
@@ -574,20 +586,13 @@ static void handler( int sig ) {
 
 - (void)previousChangeAction:(id)sender
 {
-    NSTextView *sourceTextView = [self textView];
-    if ( ![sourceTextView respondsToSelector:@selector(delegate)] ) return;
+    NSArray *diffArray = [self sortedDiffArray];
+    if ([diffArray count] == 0) return;
     
-    NSDocument *doc = [(id)[sourceTextView delegate] document];
-    NSString *path = [[doc fileURL] path];
-    GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
-    
-    if (!diffs || [diffs->diffLines count] == 0) return;
-    
-    NSArray *sorted = [[diffs->diffLines allObjects] sortedArrayUsingSelector:@selector(compare:)];
     NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
     BOOL wrapAround = NO;
     
-    for (NSNumber *line in [sorted reverseObjectEnumerator]) {
+    for (NSNumber *line in [diffArray reverseObjectEnumerator]) {
         if ([currentLineNumber compare:line] == NSOrderedDescending) {
             long long gotoLine = [line longLongValue];
             if (gotoLine > 0) --gotoLine;
@@ -600,7 +605,7 @@ static void handler( int sig ) {
     }
     
     if (wrapAround) {
-        long long gotoLine = [sorted.lastObject longLongValue];
+        long long gotoLine = [diffArray.lastObject longLongValue];
         if (gotoLine > 0) --gotoLine;
         
         DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
