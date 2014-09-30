@@ -219,6 +219,7 @@ static void handler( int sig ) {
                                 deleted[start] += buffer+1;
                                 modified[modline++] = start;
                                 delcnt++;
+                                [self->diffLines addObject:@(start)];
                                 break;
 
                             case '+':
