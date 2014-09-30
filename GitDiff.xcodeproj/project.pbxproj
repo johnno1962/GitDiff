@@ -47,6 +47,7 @@
 		BBDDCEF9198EF5940012A010 /* NSString+EscapeHTMLCharacters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+EscapeHTMLCharacters.h"; path = "DiffMatchPatch/NSString+EscapeHTMLCharacters.h"; sourceTree = "<group>"; };
 		BBDDCEFA198EF5940012A010 /* NSString+EscapeHTMLCharacters.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+EscapeHTMLCharacters.m"; path = "DiffMatchPatch/NSString+EscapeHTMLCharacters.m"; sourceTree = "<group>"; };
 		BBE2C2181986D85C007D9B5E /* GitDiff.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GitDiff.xib; sourceTree = "<group>"; };
+		BD3F33E419D9CA90001B8104 /* XcodePrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XcodePrivate.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +105,7 @@
 		7F411B0C15FABAC6002F77B6 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				BD3F33E419D9CA90001B8104 /* XcodePrivate.h */,
 				BB5CF6381912DCC50052E10B /* GitDiff.h */,
 				BB5CF6391912DCC50052E10B /* GitDiff.mm */,
 				BBE2C2181986D85C007D9B5E /* GitDiff.xib */,
