@@ -13,6 +13,16 @@
 #import "GitDiff.h"
 #import <objc/runtime.h>
 #import "GitDiffColorsWindowController.h"
+#import "XcodePrivate.h"
+
+@interface GitChangeManager : NSObject
+
++ (instancetype)sharedManager;
+
+- (void)nextChangeAction:(id)sender;
+- (void)previousChangeAction:(id)sender;
+
+@end
 
 extern "C" {
     #import "DiffMatchPatch.h"
@@ -95,15 +105,46 @@ static GitDiff *gitDiffPlugin;
 {
     NSMenu *editorMenu = [[[NSApp mainMenu] itemWithTitle:@"Edit"] submenu];
     
-    if ( editorMenu ) {
-        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"GitDiff Configuration..."
+    if (!editorMenu) return;
+        
+    NSMenu *gitDiffMenu = [[NSMenu alloc] initWithTitle:@"GitDiff"];
+    
+    [editorMenu addItem:[NSMenuItem separatorItem]];
+    
+    [gitDiffMenu addItem:({
+        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Configuration"
                                                           action:@selector(gitDiffColorsMenuItemSelected:)
                                                    keyEquivalent:@""];
         menuItem.target = self;
+        menuItem;
+    })];
+    
+    [gitDiffMenu addItem:[NSMenuItem separatorItem]];
+    
+    [gitDiffMenu addItem:({
+        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Next Change"
+                                                          action:@selector(nextChangeAction:)
+                                                   keyEquivalent:@""];
+        menuItem.target = [GitChangeManager sharedManager];
+        menuItem;
+    })];
+    
+    [gitDiffMenu addItem:({
+        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Previous Change"
+                                                          action:@selector(previousChangeAction:)
+                                                   keyEquivalent:@""];
+        menuItem.target = [GitChangeManager sharedManager];
+        menuItem;
+    })];
+    
+    NSString *versionString = [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    NSMenuItem *gitDiffMenuItem = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"GitDiff (%@)", versionString]
+                                                            action:nil
+                                                     keyEquivalent:@""];
+    
+    gitDiffMenuItem.submenu = gitDiffMenu;
         
-        [editorMenu addItem:[NSMenuItem separatorItem]];
-        [editorMenu addItem:menuItem];
-    }
+    [editorMenu addItem:gitDiffMenuItem];
 }
 
 - (void)gitDiffColorsMenuItemSelected:(id)sender
@@ -126,6 +167,7 @@ static bool exists( const _M &map, const _K &key ) {
     std::map<NSUInteger,std::string> deleted; // text deleted by line
     std::map<NSUInteger,NSUInteger> modified; // line number delta started by line
     std::map<NSUInteger,std::string> added; // line has been added or modified
+    NSSet *diffLines;
     NSUInteger lines;
     time_t updated;
 }
@@ -151,6 +193,7 @@ static void handler( int sig ) {
     if ( (self = [super init]) ) {
         NSString *command = [NSString stringWithFormat:@"cd \"%@\" && /usr/bin/git diff \"%@\"",
                              [path stringByDeletingLastPathComponent], path];
+        NSMutableSet *diffSet = [[NSMutableSet alloc] init];
         void (*savepipe)(int) = signal( SIGPIPE, handler );
 
         int signum;
@@ -176,6 +219,7 @@ static void handler( int sig ) {
                                 deleted[start] += buffer+1;
                                 modified[modline++] = start;
                                 delcnt++;
+                                [diffSet addObject:@(start)];
                                 break;
 
                             case '+':
@@ -185,6 +229,7 @@ static void handler( int sig ) {
                                 }
                                 if ( ++addcnt > delcnt ) {
                                     modified.erase(line);
+                                    [diffSet addObject:@(start)];
                                 }
                             default:
                                 modline = ++line;
@@ -206,6 +251,7 @@ static void handler( int sig ) {
                 NSLog( @"GitDiff Plugin: SIGNAL: %d", signum );
         }
 
+        self->diffLines = [diffSet copy];
         updated = time(NULL);
         signal( SIGPIPE, savepipe );
         gitDiffPlugin.diffsByFile[path] = self;
@@ -447,6 +493,126 @@ static void handler( int sig ) {
                 NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
             }
         }
+    }
+}
+
+@end
+
+@implementation GitChangeManager
+
++ (instancetype)sharedManager {
+    static GitChangeManager *_sharedManager = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedManager = [[GitChangeManager alloc] init];
+    });
+    
+    return _sharedManager;
+}
+
+#pragma mark - Getters
+
+- (id)currentEditor
+{
+    NSWindowController *currentWindowController = [[NSApp keyWindow] windowController];
+    
+    if ([currentWindowController isKindOfClass:NSClassFromString(@"IDEWorkspaceWindowController")]) {
+        IDEWorkspaceWindowController *workspaceController = (IDEWorkspaceWindowController *)currentWindowController;
+        IDEEditorArea *editorArea = [workspaceController editorArea];
+        IDEEditorContext *editorContext = [editorArea lastActiveEditorContext];
+        return [editorContext editor];
+    }
+    
+    return nil;
+}
+
+- (NSTextView *)textView
+{
+    if ([[self currentEditor] isKindOfClass:NSClassFromString(@"IDESourceCodeEditor")]) {
+        IDESourceCodeEditor *editor = [self currentEditor];
+        return editor.textView;
+    }
+    
+    if ([[self currentEditor] isKindOfClass:NSClassFromString(@"IDESourceCodeComparisonEditor")]) {
+        IDESourceCodeComparisonEditor *editor = [self currentEditor];
+        return editor.keyTextView;
+    }
+    
+    return nil;
+}
+
+- (NSArray *)sortedDiffArray
+{
+    NSTextView *sourceTextView = [self textView];
+    if ( ![sourceTextView respondsToSelector:@selector(delegate)] ) return @[];
+
+    NSDocument *doc = [(id)[sourceTextView delegate] document];
+    NSString *path = [[doc fileURL] path];
+    GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
+
+    if (!diffs || [diffs->diffLines count] == 0) return @[];
+
+    NSArray *sortedArray = [[diffs->diffLines allObjects] sortedArrayUsingSelector:@selector(compare:)];
+    return sortedArray;
+}
+
+#pragma mark - Actions
+
+- (void)nextChangeAction:(id)sender
+{
+    NSArray *diffArray = [self sortedDiffArray];
+    if ([diffArray count] == 0) return;
+
+    NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
+    BOOL wrapAround = NO;
+    
+    for (NSNumber *line in diffArray) {
+        if ([currentLineNumber compare:line] == NSOrderedAscending) {
+            long long gotoLine = [line longLongValue];
+            if (gotoLine > 0) --gotoLine;
+            
+            DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
+            [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
+            wrapAround = NO;
+            break;
+        }
+    }
+    
+    if (wrapAround) {
+        long long gotoLine = [diffArray.firstObject longLongValue];
+        if (gotoLine > 0) --gotoLine;
+        
+        DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
+        [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
+    }
+}
+
+- (void)previousChangeAction:(id)sender
+{
+    NSArray *diffArray = [self sortedDiffArray];
+    if ([diffArray count] == 0) return;
+    
+    NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
+    BOOL wrapAround = NO;
+    
+    for (NSNumber *line in [diffArray reverseObjectEnumerator]) {
+        if ([currentLineNumber compare:line] == NSOrderedDescending) {
+            long long gotoLine = [line longLongValue];
+            if (gotoLine > 0) --gotoLine;
+            
+            DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
+            [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
+            wrapAround = NO;
+            break;
+        }
+    }
+    
+    if (wrapAround) {
+        long long gotoLine = [diffArray.lastObject longLongValue];
+        if (gotoLine > 0) --gotoLine;
+        
+        DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
+        [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
     }
 }
 
