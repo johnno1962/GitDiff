@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#58 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#60 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -85,24 +85,6 @@ static GitDiff *gitDiffPlugin;
 {
     method_exchangeImplementations(class_getInstanceMethod(aClass, origMethod),
                                    class_getInstanceMethod(aClass, altMethod));
-}
-
-- (instancetype)init
-{
-    self = [super init];
-    if (!self) return nil;
-
-    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-
-    if (![userDefaults objectForKey:@"GitDiffGutterMode"]) {
-        [userDefaults setInteger:GitDiffGutterTypeDefault forKey:@"GitDiffGutterMode"];
-    }
-
-    if (![userDefaults objectForKey:@"GitDiffWrapNavigation"]) {
-        [userDefaults setInteger:GitDiffWrapNavigationDefault forKey:@"GitDiffWrapNavigation"];
-    }
-
-    return self;
 }
 
 - (void)insertMenuItems
