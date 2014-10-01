@@ -13,6 +13,11 @@ typedef NS_ENUM(NSInteger, GitDiffGutterType) {
     GitDiffGutterTypeVerbose
 };
 
+typedef NS_ENUM(NSInteger, GitDiffWrapNavigation) {
+    GitDiffWrapNavigationDefault = 0,
+    GitDiffWrapNavigationEnabled
+};
+
 @interface GitDiff : NSObject
 
 @end

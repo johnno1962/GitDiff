@@ -98,6 +98,10 @@ static GitDiff *gitDiffPlugin;
         [userDefaults setInteger:GitDiffGutterTypeDefault forKey:@"GitDiffGutterMode"];
     }
 
+    if (![userDefaults objectForKey:@"GitDiffWrapNavigation"]) {
+        [userDefaults setInteger:GitDiffWrapNavigationDefault forKey:@"GitDiffWrapNavigation"];
+    }
+
     return self;
 }
 
@@ -564,7 +568,7 @@ static void handler( int sig ) {
     if ([diffArray count] == 0) return;
 
     NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
-    BOOL wrapAround = NO;
+    BOOL wrapAround = [[NSUserDefaults standardUserDefaults] boolForKey:@"GitDiffWrapNavigation"];
 
     for (NSNumber *line in diffArray) {
         if ([currentLineNumber compare:line] == NSOrderedAscending) {
@@ -593,7 +597,7 @@ static void handler( int sig ) {
     if ([diffArray count] == 0) return;
 
     NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
-    BOOL wrapAround = NO;
+    BOOL wrapAround = [[NSUserDefaults standardUserDefaults] boolForKey:@"GitDiffWrapNavigation"];
 
     for (NSNumber *line in [diffArray reverseObjectEnumerator]) {
         if ([currentLineNumber compare:line] == NSOrderedDescending) {
