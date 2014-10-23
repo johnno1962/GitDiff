@@ -36,6 +36,7 @@ NSString *const GitDiffChangedColorKey  = @"GitDiffChangedColor";
     NSString *nibPath = [bundle pathForResource:@"GitDiff" ofType:@"nib"];
     if (!nibPath) {
         NSLog( @"GitDiff Plugin: Could not load colors interface." );
+        return nil;
     }
     
     self = [super initWithWindowNibPath:nibPath owner:self];

@@ -88,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				8D5B49B7048680CD000E48DA /* Info.plist */,
+				BBE2C2181986D85C007D9B5E /* GitDiff.xib */,
 				9F18A2F219A094D300CB9ED8 /* Defaults.plist */,
 				BB82F0CC1913D15F0015AE7A /* README.md */,
 			);
@@ -108,7 +109,6 @@
 				BD3F33E419D9CA90001B8104 /* XcodePrivate.h */,
 				BB5CF6381912DCC50052E10B /* GitDiff.h */,
 				BB5CF6391912DCC50052E10B /* GitDiff.mm */,
-				BBE2C2181986D85C007D9B5E /* GitDiff.xib */,
 				9FD45A1619A0913600E924E0 /* GitDiffColorsWindowController.h */,
 				9FD45A1719A0913600E924E0 /* GitDiffColorsWindowController.m */,
 			);
