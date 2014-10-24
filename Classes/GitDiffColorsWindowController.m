@@ -35,7 +35,11 @@ NSString *const GitDiffChangedColorKey  = @"GitDiffChangedColor";
 
     NSString *nibPath = [bundle pathForResource:@"GitDiff" ofType:@"nib"];
     if (!nibPath) {
-        NSLog( @"GitDiff Plugin: Could not load colors interface." );
+        if ( [[NSAlert alertWithMessageText:@"GitDiff Plugin:"
+                              defaultButton:@"OK" alternateButton:@"Goto GitHub" otherButton:nil
+                  informativeTextWithFormat:@"Could not load colors interface. If problems persist, please build from the sources on GitHub."]
+              runModal] == NSAlertAlternateReturn )
+            [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/johnno1962/GitDiff"]];
         return nil;
     }
     
