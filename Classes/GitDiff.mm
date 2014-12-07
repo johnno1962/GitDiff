@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#60 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#61 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -47,38 +47,41 @@ static GitDiff *gitDiffPlugin;
 + (void)pluginDidLoad:(NSBundle *)plugin
 {
 	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-		gitDiffPlugin = [[self alloc] init];
-		gitDiffPlugin.colorsWindowController = [[GitDiffColorsWindowController alloc] initWithPluginBundle:plugin];
-		gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
+    NSString *currentApplicationName = [[NSBundle mainBundle] infoDictionary][@"CFBundleName"];
 
-		[gitDiffPlugin insertMenuItems];
+    if ([currentApplicationName isEqual:@"Xcode"])
+        dispatch_once(&onceToken, ^{
+            gitDiffPlugin = [[self alloc] init];
+            gitDiffPlugin.colorsWindowController = [[GitDiffColorsWindowController alloc] initWithPluginBundle:plugin];
+            gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
 
-		gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
+            [gitDiffPlugin insertMenuItems];
 
-		gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
-		[self swizzleClass:[NSDocument class]
-		          exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
-		              with:@selector(gitdiff_finishSavingToURL:ofType:forSaveOperation:changeCount:)];
+            gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
 
-		Class aClass = NSClassFromString(@"IDEEditorDocument");
-		[self swizzleClass:aClass
-		          exchange:@selector(closeToRevert)
-		              with:@selector(gitdiff_closeToRevert)];
+            gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
+            [self swizzleClass:[NSDocument class]
+                      exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
+                          with:@selector(gitdiff_finishSavingToURL:ofType:forSaveOperation:changeCount:)];
 
-		aClass = NSClassFromString(@"DVTTextSidebarView");
-		[self swizzleClass:aClass
-		          exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
-		              with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)];
-		[self swizzleClass:aClass
-		          exchange:@selector(annotationAtSidebarPoint:)
-		              with:@selector(gitdiff_annotationAtSidebarPoint:)];
+            Class aClass = NSClassFromString(@"IDEEditorDocument");
+            [self swizzleClass:aClass
+                      exchange:@selector(closeToRevert)
+                          with:@selector(gitdiff_closeToRevert)];
 
-		aClass = NSClassFromString(@"DVTMarkedScroller");
-		[self swizzleClass:aClass
-		          exchange:@selector(drawKnobSlotInRect:highlight:)
-		              with:@selector(gitdiff_drawKnobSlotInRect:highlight:)];
-    });
+            aClass = NSClassFromString(@"DVTTextSidebarView");
+            [self swizzleClass:aClass
+                      exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
+                          with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)];
+            [self swizzleClass:aClass
+                      exchange:@selector(annotationAtSidebarPoint:)
+                          with:@selector(gitdiff_annotationAtSidebarPoint:)];
+
+            aClass = NSClassFromString(@"DVTMarkedScroller");
+            [self swizzleClass:aClass
+                      exchange:@selector(drawKnobSlotInRect:highlight:)
+                          with:@selector(gitdiff_drawKnobSlotInRect:highlight:)];
+        });
 }
 
 + (void)swizzleClass:(Class)aClass exchange:(SEL)origMethod with:(SEL)altMethod

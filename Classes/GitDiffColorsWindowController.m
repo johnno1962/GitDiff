@@ -37,7 +37,7 @@ static NSString *const GitDiffChangedColorKey  = @"GitDiffChangedColor";
     if (!nibPath) {
         if ( [[NSAlert alertWithMessageText:@"GitDiff Plugin:"
                               defaultButton:@"OK" alternateButton:@"Goto GitHub" otherButton:nil
-                  informativeTextWithFormat:@"Could not load colors interface. If problems persist, please download and build from the sources on GitHub."]
+                  informativeTextWithFormat:@"Could not load colors interface. This is a problem when using Alcatraz since Xcode6. If problems persist, please download and build from the sources on GitHub."]
               runModal] == NSAlertAlternateReturn )
             [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/johnno1962/GitDiff"]];
         return nil;
