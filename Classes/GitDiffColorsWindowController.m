@@ -149,8 +149,8 @@ static NSString *const GitDiffChangedColorKey  = @"GitDiffChangedColor";
 - (NSString *)plistStringFromColor:(NSColor *)color
 {
     CGFloat r, g, b, a;
-    [color getRed:&r green:&g blue:&b alpha:&a];
-    
+    [[color colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]] getRed:&r green:&g blue:&b alpha:&a];
+
     return [NSString stringWithFormat:@"%.3f %.3f %.3f %.3f", r, g, b, a];
 }
 
