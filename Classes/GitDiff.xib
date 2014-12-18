@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="6245" systemVersion="14A379a" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="6221" systemVersion="14C81f" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
-        <deployment defaultVersion="1070" identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6245"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6221"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="GitDiffColorsWindowController">
@@ -155,6 +155,7 @@ Gw
                             <menu key="menu" id="Qsk-Pr-4rV">
                                 <items>
                                     <menuItem title="Subtle" id="idD-Z5-fK9"/>
+                                    <menuItem title="Medium" id="prp-QP-YcX"/>
                                     <menuItem title="Verbose" id="Ivn-9Z-cbq"/>
                                 </items>
                             </menu>
@@ -171,10 +172,10 @@ Gw
                         <font key="titleFont" metaFont="system"/>
                     </box>
                     <matrix verticalHuggingPriority="750" allowsEmptySelection="NO" autorecalculatesCellSize="YES" id="Okf-tP-Nw5">
-                        <rect key="frame" x="131" y="20" width="140" height="38"/>
+                        <rect key="frame" x="131" y="20" width="157" height="38"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                        <size key="cellSize" width="121" height="18"/>
+                        <size key="cellSize" width="124" height="18"/>
                         <size key="intercellSpacing" width="4" height="2"/>
                         <buttonCell key="prototype" type="radio" title="Radio" imagePosition="left" alignment="left" inset="2" id="ATZ-N2-spP">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>

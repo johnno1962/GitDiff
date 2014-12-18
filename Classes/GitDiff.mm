@@ -346,6 +346,9 @@ static void handler( int sig ) {
                     case GitDiffGutterTypeVerbose:
                         gutterSize = a0.size.width;
                         break;
+                    case GitDiffGutterTypeMedium:
+                        gutterSize = 4.;
+                        break;
                     case GitDiffGutterTypeDefault:
                         gutterSize = 2.;
                         break;
