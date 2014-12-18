@@ -18,14 +18,6 @@
 	<string>${CURRENT_PROJECT_VERSION}</string>
 	<key>CFBundleVersion</key>
 	<string>${CURRENT_PROJECT_VERSION}</string>
-	<key>NSPrincipalClass</key>
-	<string>GitDiff</string>
-	<key>XCGCReady</key>
-	<true/>
-	<key>XCPluginHasUI</key>
-	<false/>
-	<key>XC4Compatible</key>
-	<true/>
 	<key>DVTPlugInCompatibilityUUIDs</key>
 	<array>
 		<string>63FC1C47-140D-42B0-BB4D-A10B2D225574</string>
@@ -35,5 +27,13 @@
 		<string>C4A681B0-4A26-480E-93EC-1218098B9AA0</string>
 		<string>FEC992CC-CA4A-4CFD-8881-77300FCB848A</string>
 	</array>
+	<key>NSPrincipalClass</key>
+	<string>GitDiff</string>
+	<key>XC4Compatible</key>
+	<true/>
+	<key>XCGCReady</key>
+	<true/>
+	<key>XCPluginHasUI</key>
+	<false/>
 </dict>
 </plist>

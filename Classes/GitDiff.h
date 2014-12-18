@@ -10,7 +10,8 @@
 
 typedef NS_ENUM(NSInteger, GitDiffGutterType) {
     GitDiffGutterTypeDefault = 0,
-    GitDiffGutterTypeVerbose
+    GitDiffGutterTypeMedium,
+    GitDiffGutterTypeVerbose,
 };
 
 typedef NS_ENUM(NSInteger, GitDiffWrapNavigation) {
