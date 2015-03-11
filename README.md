@@ -10,6 +10,8 @@ A red line indicates code has been removed. Hover over deleted/modified line num
 This Plugin is also available through the [Alcatraz](http://alcatraz.io/) meta-plugin and was developed using
 the [Xprobe Plugin](https://github.com/johnno1962/XprobePlugin) for Xcode plugin developers.
 
+NOTE: GitDiff doesn't work if you are not showwing line numbers in the Xcode Editor.
+
 ### MIT License
 
 Copyright (C) 2014 John Holdsworth
