@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#62 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#63 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -52,7 +52,12 @@ static GitDiff *gitDiffPlugin;
     if ([currentApplicationName isEqual:@"Xcode"])
         dispatch_once(&onceToken, ^{
             gitDiffPlugin = [[self alloc] init];
-            gitDiffPlugin.colorsWindowController = [[GitDiffColorsWindowController alloc] initWithPluginBundle:plugin];
+
+            if ( !(gitDiffPlugin.colorsWindowController = [[GitDiffColorsWindowController alloc] initWithPluginBundle:plugin]) ) {
+                NSLog( @"GitDiff: nib not loaded exiting" );
+                return;
+            }
+
             gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
 
             [gitDiffPlugin insertMenuItems];
