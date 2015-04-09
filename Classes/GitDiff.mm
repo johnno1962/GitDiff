@@ -560,7 +560,7 @@ static void handler( int sig ) {
     NSArray *diffArray = [self sortedDiffArray];
     if ([diffArray count] == 0) return;
 
-    NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
+    NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNumber]);
     BOOL wrapAround = [[NSUserDefaults standardUserDefaults] boolForKey:@"GitDiffWrapNavigation"];
 
     for (NSNumber *line in diffArray) {
@@ -589,7 +589,7 @@ static void handler( int sig ) {
     NSArray *diffArray = [self sortedDiffArray];
     if ([diffArray count] == 0) return;
 
-    NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNubmer]);
+    NSNumber *currentLineNumber = @([[self currentEditor] _currentOneBasedLineNumber]);
     BOOL wrapAround = [[NSUserDefaults standardUserDefaults] boolForKey:@"GitDiffWrapNavigation"];
 
     for (NSNumber *line in [diffArray reverseObjectEnumerator]) {
