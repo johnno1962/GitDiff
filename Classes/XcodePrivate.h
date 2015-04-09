@@ -20,6 +20,7 @@
 @interface IDESourceCodeEditor : NSObject
 
 @property (retain) NSTextView *textView;
+- (long)_currentOneBasedLineNubmer;
 - (long)_currentOneBasedLineNumber;
 - (id)_documentLocationForLineNumber:(long)a0;
 - (void)selectDocumentLocations:(id)a0 highlightSelection:(BOOL)a1;
