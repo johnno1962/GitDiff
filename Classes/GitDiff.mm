@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#64 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#65 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -427,7 +427,7 @@ static void handler( int sig ) {
                         continue;
                     }
 
-                    NSMutableAttributedString *next = [[NSMutableAttributedString alloc] initWithString:diff.text];
+                    NSMutableAttributedString *next = [[NSMutableAttributedString alloc] initWithString:diff.text?:@""];
                     if ( diff.operation == DIFF_DELETE ) {
                         [next setAttributes:attributes range:NSMakeRange(0, next.length)];
                     }
@@ -438,7 +438,7 @@ static void handler( int sig ) {
                 [[popover textStorage] setAttributedString:attrstr];
             }
             else {
-                [[popover textStorage] setAttributedString:[[NSAttributedString alloc] initWithString:before]];
+                [[popover textStorage] setAttributedString:[[NSAttributedString alloc] initWithString:before?:@""]];
             }
 
             NSTextView *sourceTextView = [self sourceTextView];
