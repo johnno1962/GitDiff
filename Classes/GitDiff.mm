@@ -397,7 +397,9 @@ static void handler( int sig ) {
     NSTextView *popover = gitDiffPlugin.popover;
     popover.backgroundColor = gitDiffPlugin.colorsWindowController.popoverColor;
 
-    if ( !annotation && p0.x < self.sidebarWidth ) {
+    BOOL displayAnnotation = [[NSUserDefaults standardUserDefaults] boolForKey:@"GitDiffDisplayAnnotation"];
+
+    if ( displayAnnotation && !annotation && p0.x < self.sidebarWidth ) {
         GitFileDiffs *diffs = [self gitDiffs];
         NSUInteger line = [self lineNumberForPoint:p0];
 
