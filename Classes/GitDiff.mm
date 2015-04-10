@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#65 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#66 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -396,8 +396,7 @@ static void handler( int sig ) {
     id annotation = [self gitdiff_annotationAtSidebarPoint:p0];
     NSTextView *popover = gitDiffPlugin.popover;
     popover.backgroundColor = gitDiffPlugin.colorsWindowController.popoverColor;
-
-    BOOL displayAnnotation = [[NSUserDefaults standardUserDefaults] boolForKey:@"GitDiffDisplayAnnotation"];
+    BOOL displayAnnotation = gitDiffPlugin.colorsWindowController.shouldPopover.state;
 
     if ( displayAnnotation && !annotation && p0.x < self.sidebarWidth ) {
         GitFileDiffs *diffs = [self gitDiffs];

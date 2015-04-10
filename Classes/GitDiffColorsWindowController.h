@@ -17,6 +17,7 @@
 @property (strong, readonly) NSColor *deletedColor;
 @property (strong, readonly) NSColor *popoverColor;
 @property (strong, readonly) NSColor *changedColor;
+@property (weak) IBOutlet NSButton *shouldPopover;
 
 - (instancetype)initWithPluginBundle:(NSBundle *)bundle;
 

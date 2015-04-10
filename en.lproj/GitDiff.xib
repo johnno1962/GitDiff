@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="6221" systemVersion="14B25" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="6751" systemVersion="14D131" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6221"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6751"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="GitDiffColorsWindowController">
@@ -12,6 +12,7 @@
                 <outlet property="deletedColorWell" destination="Wik-La-fuR" id="4tS-ZN-neG"/>
                 <outlet property="modifiedColorWell" destination="rIO-tM-r5P" id="8xM-W1-wm9"/>
                 <outlet property="popoverColorWell" destination="4Mw-Js-TIM" id="pbB-0t-9u0"/>
+                <outlet property="shouldPopover" destination="IDW-WA-DHG" id="CD6-KZ-TBZ"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="KEY-uM-a6f"/>
             </connections>
         </customObject>
@@ -214,7 +215,11 @@ Gw
                             <font key="font" metaFont="system"/>
                         </buttonCell>
                         <connections>
-                            <binding destination="Y8c-8q-f8n" name="value" keyPath="values.GitDiffDisplayAnnotation" id="VBs-oP-VGp"/>
+                            <binding destination="Y8c-8q-f8n" name="value" keyPath="values.GitDiffDisplayAnnotation" id="iL9-Jl-BDG">
+                                <dictionary key="options">
+                                    <integer key="NSNullPlaceholder" value="1"/>
+                                </dictionary>
+                            </binding>
                         </connections>
                     </button>
                 </subviews>
