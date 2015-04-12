@@ -49,6 +49,7 @@ static NSString *const GitDiffChangedColorKey  = @"GitDiffChangedColor";
         NSString *pluginDefaultsPath = [bundle pathForResource:@"Defaults" ofType:@"plist"];
         _pluginDefaults = [NSDictionary dictionaryWithContentsOfFile:pluginDefaultsPath];
         _userDefaults   = [NSUserDefaults standardUserDefaults];
+        [self loadWindow];
     }
     return self;
 }
