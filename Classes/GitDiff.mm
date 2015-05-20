@@ -362,7 +362,7 @@ static void handler( int sig ) {
                         gutterSize = a0.size.width;
                         break;
                     case GitDiffGutterTypeMedium:
-                        gutterSize = 4.;
+                        gutterSize = 3.;
                         break;
                     case GitDiffGutterTypeDefault:
                         gutterSize = 2.;
@@ -370,7 +370,7 @@ static void handler( int sig ) {
                 }
 
                 a0.origin.x += (a0.size.width - gutterSize);
-                a0.size.width = gutterSize;
+                a0.size.width = gutterSize - 1;
                 [[NSBezierPath bezierPathWithRect:a0] fill];
             }
             else if ( exists( diffs->deleted, line ) ) {
