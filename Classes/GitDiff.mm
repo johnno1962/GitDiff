@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#66 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#67 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -60,7 +60,9 @@ static GitDiff *gitDiffPlugin;
 
             gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
 
-            [gitDiffPlugin insertMenuItems];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [gitDiffPlugin insertMenuItems];
+            });
 
             gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
 
