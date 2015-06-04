@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#67 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#68 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -193,7 +193,7 @@ static void handler( int sig ) {
 // parse "git diff" output
 - (id)initWithFilepath:(NSString *)path
 {
-    if ( (self = [super init]) ) {
+    if ( path && (self = [super init]) ) {
         NSString *command = [NSString stringWithFormat:@"cd \"%@\" && /usr/bin/git diff \"%@\"",
                              [path stringByDeletingLastPathComponent], path];
         NSMutableSet *diffSet = [[NSMutableSet alloc] init];
