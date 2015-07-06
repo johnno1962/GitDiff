@@ -13,6 +13,7 @@
 		BB5CF63A1912DCC50052E10B /* GitDiff.mm in Sources */ = {isa = PBXBuildFile; fileRef = BB5CF6391912DCC50052E10B /* GitDiff.mm */; };
 		BB7877DA198F04E60025E56F /* DMPatch.m in Sources */ = {isa = PBXBuildFile; fileRef = BBDDCEEE198EF4570012A010 /* DMPatch.m */; };
 		BB82F0CD1913D15F0015AE7A /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = BB82F0CC1913D15F0015AE7A /* README.md */; };
+		BB860F0C1B4B139200C02866 /* undo.png in Resources */ = {isa = PBXBuildFile; fileRef = BB860F0B1B4B139200C02866 /* undo.png */; };
 		BB95DB10198F031500694DEF /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = BB95DB0F198F031500694DEF /* LICENSE */; };
 		BBA26C4219F931C600B0F0A5 /* GitDiff.xib in Resources */ = {isa = PBXBuildFile; fileRef = BBA26C4419F931C600B0F0A5 /* GitDiff.xib */; };
 		BBDDCEF3198EF4570012A010 /* DiffMatchPatch.m in Sources */ = {isa = PBXBuildFile; fileRef = BBDDCEE7198EF4570012A010 /* DiffMatchPatch.m */; };
@@ -32,6 +33,7 @@
 		BB5CF6381912DCC50052E10B /* GitDiff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GitDiff.h; sourceTree = "<group>"; };
 		BB5CF6391912DCC50052E10B /* GitDiff.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GitDiff.mm; sourceTree = "<group>"; };
 		BB82F0CC1913D15F0015AE7A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		BB860F0B1B4B139200C02866 /* undo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = undo.png; sourceTree = "<group>"; };
 		BB95DB0F198F031500694DEF /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE; path = DiffMatchPatch/LICENSE; sourceTree = "<group>"; };
 		BBA26C4319F931C600B0F0A5 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/GitDiff.xib; sourceTree = "<group>"; };
 		BBDDCEE6198EF4570012A010 /* DiffMatchPatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DiffMatchPatch.h; path = DiffMatchPatch/DiffMatchPatch.h; sourceTree = "<group>"; };
@@ -88,6 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				8D5B49B7048680CD000E48DA /* Info.plist */,
+				BB860F0B1B4B139200C02866 /* undo.png */,
 				BBA26C4419F931C600B0F0A5 /* GitDiff.xib */,
 				9F18A2F219A094D300CB9ED8 /* Defaults.plist */,
 				BB82F0CC1913D15F0015AE7A /* README.md */,
@@ -191,6 +194,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9F18A2F319A094D300CB9ED8 /* Defaults.plist in Resources */,
+				BB860F0C1B4B139200C02866 /* undo.png in Resources */,
 				BB95DB10198F031500694DEF /* LICENSE in Resources */,
 				BB82F0CD1913D15F0015AE7A /* README.md in Resources */,
 				BBA26C4219F931C600B0F0A5 /* GitDiff.xib in Resources */,

@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#69 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#70 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -18,6 +18,7 @@
 @interface GitChangeManager : NSObject
 
 + (instancetype)sharedManager;
++ (id)currentEditor;
 
 - (void)nextChangeAction:(id)sender;
 - (void)previousChangeAction:(id)sender;
@@ -37,9 +38,11 @@ static GitDiff *gitDiffPlugin;
 
 @property NSMutableDictionary *diffsByFile;
 @property Class sourceDocClass;
-@property NSTextView *popover;
 @property GitDiffColorsWindowController *colorsWindowController;
-
+@property NSTextView *popover;
+@property NSButton *undoButton;
+@property NSRange undoRange;
+@property NSString *undoText;
 @end
 
 @implementation GitDiff
@@ -66,6 +69,7 @@ static GitDiff *gitDiffPlugin;
             });
 
             gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
+            gitDiffPlugin.undoButton = gitDiffPlugin.colorsWindowController.undoButton;
 
             [self swizzleClass:[NSDocument class]
                       exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
@@ -412,6 +416,15 @@ static void handler( int sig ) {
             [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:start];
 
             std::string deleted = diffs->deleted[start];
+
+            gitDiffPlugin.undoText = [NSString stringWithUTF8String:deleted.c_str()];
+
+            int linesToReplace = 0;
+            for ( int line = start ; exists( diffs->added, line ) && exists( diffs->modified, line ) && diffs->modified[line] == start ; line++ )
+                linesToReplace++;
+
+            gitDiffPlugin.undoRange = NSMakeRange( start, linesToReplace );
+
             deleted = deleted.substr(0,deleted.length()-1);
 
             NSString *before = [NSString stringWithUTF8String:deleted.c_str()];
@@ -453,6 +466,7 @@ static void handler( int sig ) {
 
             popover.frame = NSMakeRect(NSWidth(self.frame)+1., a0.origin.y, w, h);
 
+            [self performSelector:@selector(showUndo) withObject:nil afterDelay:1.];
             [self.scrollView addSubview:popover];
             return annotation;
         }
@@ -460,9 +474,40 @@ static void handler( int sig ) {
 
     if ( [popover superview] ) {
         [popover removeFromSuperview];
+        [gitDiffPlugin.undoButton removeFromSuperview];
     }
 
     return annotation;
+}
+
+- (void)showUndo {
+    if ( [gitDiffPlugin.popover superview] ) {
+        NSButton *undoButton = gitDiffPlugin.undoButton;
+        undoButton.target = self;
+        undoButton.action = @selector(performUndo:);
+
+        CGRect a0, a1;
+        [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:gitDiffPlugin.undoRange.location];
+        CGFloat height = a0.size.height;
+        undoButton.frame = NSMakeRect( self.sidebarWidth-height, a0.origin.y, height, height );
+        [self.scrollView addSubview:undoButton];
+    }
+}
+
+- (void)performUndo:(NSButton *)sender {
+    IDESourceCodeEditor *editor = [GitChangeManager currentEditor];
+    NSRange safeRange = NSMakeRange( gitDiffPlugin.undoRange.location-1, MAX(gitDiffPlugin.undoRange.length,1) );
+    DVTTextDocumentLocation *location = [[objc_getClass("DVTTextDocumentLocation") alloc] initWithDocumentURL:editor.document.fileURL timestamp:nil
+                                                                                                    lineRange:safeRange];
+    [editor selectAndHighlightDocumentLocations:@[location]];
+    NSTextView *sourceTextView = editor.textView;
+    NSRange selectedTextRange = [sourceTextView selectedRange];
+    NSString *selectedString = [sourceTextView.textStorage.string substringWithRange:selectedTextRange];
+    if (selectedString) {
+        if ( gitDiffPlugin.undoRange.length )
+            selectedString = @"";
+        [sourceTextView replaceCharactersInRange:selectedTextRange withString:[gitDiffPlugin.undoText stringByAppendingString:selectedString]];
+    }
 }
 
 @end
@@ -519,7 +564,7 @@ static void handler( int sig ) {
 
 #pragma mark - Getters
 
-- (id)currentEditor
++ (id)currentEditor
 {
     NSWindowController *currentWindowController = [[NSApp keyWindow] windowController];
 
@@ -531,6 +576,11 @@ static void handler( int sig ) {
     }
 
     return nil;
+}
+
+- (id)currentEditor
+{
+    return [[self class] currentEditor];
 }
 
 - (NSTextView *)textView
