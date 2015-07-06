@@ -3,7 +3,8 @@
 With thanks to the genius who suggested this plugin, GitDiff displays deltas against a git repo in the Xcode
 source editor once you've saved the file. To use, copy this repo to your machine, build it and restart Xcode.
 Differences should then be highlighted in orange for lines that have been modified and blue for new code.
-A red line indicates code has been removed. Hover over deleted/modified line number to see original source.
+A red line indicates code has been removed. Hover over deleted/modified line number to see original source
+and a button to revert the change.
 
 ![Icon](http://injectionforxcode.johnholdsworth.com/gitdiff2.png)
 
