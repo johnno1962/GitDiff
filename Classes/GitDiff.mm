@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#68 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#69 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -61,12 +61,12 @@ static GitDiff *gitDiffPlugin;
             gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
 
             dispatch_async(dispatch_get_main_queue(), ^{
+                gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
                 [gitDiffPlugin insertMenuItems];
             });
 
             gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
 
-            gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
             [self swizzleClass:[NSDocument class]
                       exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
                           with:@selector(gitdiff_finishSavingToURL:ofType:forSaveOperation:changeCount:)];
