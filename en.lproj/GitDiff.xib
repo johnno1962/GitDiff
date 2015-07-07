@@ -228,7 +228,7 @@ Gw
             <point key="canvasLocation" x="279" y="372"/>
         </window>
         <userDefaultsController representsSharedInstance="YES" id="Y8c-8q-f8n"/>
-        <button id="WqR-fe-VTA">
+        <button toolTip="Revert to GIT version" id="WqR-fe-VTA">
             <rect key="frame" x="6" y="7" width="70" height="21"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="undo" imagePosition="overlaps" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="Ect-1u-vjj">

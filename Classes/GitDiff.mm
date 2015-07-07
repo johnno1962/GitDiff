@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#74 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#75 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -488,7 +488,7 @@ static void handler( int sig ) {
         CGRect a0, a1;
         [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:gitDiffPlugin.undoRange.location];
         CGFloat height = a0.size.height;
-        undoButton.frame = NSMakeRect( self.sidebarWidth-height, a0.origin.y, height, height );
+        undoButton.frame = NSMakeRect( self.sidebarWidth-2.0-height, a0.origin.y, height, height );
         [self.scrollView addSubview:undoButton];
     }
 }
