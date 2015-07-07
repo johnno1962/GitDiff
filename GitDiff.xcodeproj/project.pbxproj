@@ -68,6 +68,7 @@
 		089C166AFE841209C02AAC07 /* QuietXcode */ = {
 			isa = PBXGroup;
 			children = (
+				BB82F0CC1913D15F0015AE7A /* README.md */,
 				7F411B0C15FABAC6002F77B6 /* Classes */,
 				BBDDCEE5198EF4480012A010 /* DiffMatchPatch */,
 				089C167CFE841241C02AAC07 /* Resources */,
@@ -93,7 +94,6 @@
 				BB860F0B1B4B139200C02866 /* undo.png */,
 				BBA26C4419F931C600B0F0A5 /* GitDiff.xib */,
 				9F18A2F219A094D300CB9ED8 /* Defaults.plist */,
-				BB82F0CC1913D15F0015AE7A /* README.md */,
 			);
 			name = Resources;
 			sourceTree = "<group>";

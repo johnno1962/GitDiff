@@ -4,18 +4,18 @@ With thanks to the genius who suggested this plugin, GitDiff displays deltas aga
 source editor once you've saved the file. To use, copy this repo to your machine, build it and restart Xcode.
 Differences should then be highlighted in orange for lines that have been modified and blue for new code.
 A red line indicates code has been removed. Hover over deleted/modified line number to see original source
-and a button to revert the change.
+and after a second a button will appear allowing you to revert the change.
 
 ![Icon](http://injectionforxcode.johnholdsworth.com/gitdiff2.png)
 
 This Plugin is also available through the [Alcatraz](http://alcatraz.io/) meta-plugin and was developed using
 the [Xprobe Plugin](https://github.com/johnno1962/XprobePlugin) for Xcode plugin developers.
 
-NOTE: GitDiff doesn't work if you are not showing line numbers in the Xcode Editor.
+NOTE: GitDiff will not work if you are not showing line numbers in the Xcode Editor.
 
 ### MIT License
 
-Copyright (C) 2014 John Holdsworth
+Copyright (C) 2014-5 John Holdsworth
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
