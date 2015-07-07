@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#70 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#71 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -37,39 +37,38 @@ static GitDiff *gitDiffPlugin;
 @interface GitDiff()
 
 @property NSMutableDictionary *diffsByFile;
-@property Class sourceDocClass;
+@property Class sourceDocClass, locationClass;
 @property GitDiffColorsWindowController *colorsWindowController;
 @property NSTextView *popover;
-@property NSButton *undoButton;
 @property NSRange undoRange;
 @property NSString *undoText;
+
 @end
 
 @implementation GitDiff
 
-+ (void)pluginDidLoad:(NSBundle *)plugin
++ (void)pluginDidLoad:(NSBundle *)pluginBundle
 {
 	static dispatch_once_t onceToken;
     NSString *currentApplicationName = [[NSBundle mainBundle] infoDictionary][@"CFBundleName"];
 
     if ([currentApplicationName isEqual:@"Xcode"])
         dispatch_once(&onceToken, ^{
-            gitDiffPlugin = [[self alloc] init];
+            GitDiff *plugin = gitDiffPlugin = [[self alloc] init];
 
-            if ( !(gitDiffPlugin.colorsWindowController = [[GitDiffColorsWindowController alloc] initWithPluginBundle:plugin]) ) {
+            if ( !(plugin.colorsWindowController = [[GitDiffColorsWindowController alloc] initWithPluginBundle:pluginBundle]) ) {
                 NSLog( @"GitDiff: nib not loaded exiting" );
                 return;
             }
 
-            gitDiffPlugin.diffsByFile = [NSMutableDictionary new];
+            plugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
+            plugin.diffsByFile = [NSMutableDictionary new];
 
             dispatch_async(dispatch_get_main_queue(), ^{
-                gitDiffPlugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
-                [gitDiffPlugin insertMenuItems];
+                plugin.sourceDocClass = NSClassFromString(@"IDESourceCodeDocument");
+                plugin.locationClass = NSClassFromString(@"DVTTextDocumentLocation");
+                [plugin insertMenuItems];
             });
-
-            gitDiffPlugin.popover = [[NSTextView alloc] initWithFrame:NSZeroRect];
-            gitDiffPlugin.undoButton = gitDiffPlugin.colorsWindowController.undoButton;
 
             [self swizzleClass:[NSDocument class]
                       exchange:@selector(_finishSavingToURL:ofType:forSaveOperation:changeCount:)
@@ -474,7 +473,7 @@ static void handler( int sig ) {
 
     if ( [popover superview] ) {
         [popover removeFromSuperview];
-        [gitDiffPlugin.undoButton removeFromSuperview];
+        [gitDiffPlugin.colorsWindowController.undoButton removeFromSuperview];
     }
 
     return annotation;
@@ -482,7 +481,7 @@ static void handler( int sig ) {
 
 - (void)showUndo {
     if ( [gitDiffPlugin.popover superview] ) {
-        NSButton *undoButton = gitDiffPlugin.undoButton;
+        NSButton *undoButton = gitDiffPlugin.colorsWindowController.undoButton;
         undoButton.target = self;
         undoButton.action = @selector(performUndo:);
 
@@ -497,16 +496,22 @@ static void handler( int sig ) {
 - (void)performUndo:(NSButton *)sender {
     IDESourceCodeEditor *editor = [GitChangeManager currentEditor];
     NSRange safeRange = NSMakeRange( gitDiffPlugin.undoRange.location-1, MAX(gitDiffPlugin.undoRange.length,1) );
-    DVTTextDocumentLocation *location = [[objc_getClass("DVTTextDocumentLocation") alloc] initWithDocumentURL:editor.document.fileURL timestamp:nil
-                                                                                                    lineRange:safeRange];
+    DVTTextDocumentLocation *location = [[gitDiffPlugin.locationClass alloc] initWithDocumentURL:editor.document.fileURL
+                                                                                       timestamp:nil lineRange:safeRange];
     [editor selectAndHighlightDocumentLocations:@[location]];
     NSTextView *sourceTextView = editor.textView;
     NSRange selectedTextRange = [sourceTextView selectedRange];
     NSString *selectedString = [sourceTextView.textStorage.string substringWithRange:selectedTextRange];
+
     if (selectedString) {
         if ( gitDiffPlugin.undoRange.length )
             selectedString = @"";
         [sourceTextView replaceCharactersInRange:selectedTextRange withString:[gitDiffPlugin.undoText stringByAppendingString:selectedString]];
+
+        NSRange replacedRange = NSMakeRange( gitDiffPlugin.undoRange.location-1, [gitDiffPlugin.undoText gdLineCount]-1 );
+        location = [[gitDiffPlugin.locationClass alloc] initWithDocumentURL:editor.document.fileURL
+                                                                  timestamp:nil lineRange:replacedRange];
+        [editor selectAndHighlightDocumentLocations:@[location]];
     }
 }
 
