@@ -18,7 +18,7 @@
 @property (readonly) NSTextView *keyTextView;
 @end
 
-@interface IDESourceCodeEditor : NSObject
+@interface IDESourceCodeEditor : NSObject <NSTextViewDelegate>
 
 @property (retain) NSDocument *document; // T@"IDEEditorDocument",&,V_document
 @property (retain) NSTextView *textView;

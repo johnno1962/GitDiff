@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#71 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#74 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -502,11 +502,11 @@ static void handler( int sig ) {
     NSTextView *sourceTextView = editor.textView;
     NSRange selectedTextRange = [sourceTextView selectedRange];
     NSString *selectedString = [sourceTextView.textStorage.string substringWithRange:selectedTextRange];
+    NSString *replacement = gitDiffPlugin.undoRange.length ? gitDiffPlugin.undoText :
+                        [gitDiffPlugin.undoText stringByAppendingString:selectedString];
 
-    if (selectedString) {
-        if ( gitDiffPlugin.undoRange.length )
-            selectedString = @"";
-        [sourceTextView replaceCharactersInRange:selectedTextRange withString:[gitDiffPlugin.undoText stringByAppendingString:selectedString]];
+    if (selectedString && [sourceTextView shouldChangeTextInRange:selectedTextRange replacementString:replacement] ) {
+        [sourceTextView replaceCharactersInRange:selectedTextRange withString:replacement];
 
         NSRange replacedRange = NSMakeRange( gitDiffPlugin.undoRange.location-1, [gitDiffPlugin.undoText gdLineCount]-1 );
         location = [[gitDiffPlugin.locationClass alloc] initWithDocumentURL:editor.document.fileURL
