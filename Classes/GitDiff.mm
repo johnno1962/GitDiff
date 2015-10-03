@@ -465,7 +465,7 @@ static void handler( int sig ) {
 
             popover.frame = NSMakeRect(NSWidth(self.frame)+1., a0.origin.y, w, h);
 
-            [self performSelector:@selector(showUndo) withObject:nil afterDelay:1.];
+            [self performSelector:@selector(showUndo) withObject:nil afterDelay:.1];
             [self.scrollView addSubview:popover];
             return annotation;
         }
