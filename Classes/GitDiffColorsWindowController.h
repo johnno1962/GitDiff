@@ -18,6 +18,7 @@
 @property (strong, readonly) NSColor *popoverColor;
 @property (strong, readonly) NSColor *changedColor;
 @property (weak) IBOutlet NSButton *shouldPopover;
+@property IBOutlet NSTextField *undoButtonDelay;
 @property IBOutlet NSButton *undoButton;
 
 - (instancetype)initWithPluginBundle:(NSBundle *)bundle;
