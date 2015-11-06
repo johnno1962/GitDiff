@@ -264,7 +264,7 @@ Gw
         <button toolTip="Revert to GIT version" id="WqR-fe-VTA">
             <rect key="frame" x="6" y="7" width="70" height="21"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-            <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="undo" imagePosition="overlaps" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="Ect-1u-vjj">
+            <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="undo" imagePosition="above" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="Ect-1u-vjj">
                 <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                 <font key="font" metaFont="system"/>
             </buttonCell>
