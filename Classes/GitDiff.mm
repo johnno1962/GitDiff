@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#77 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#82 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -127,21 +127,21 @@ static GitDiff *gitDiffPlugin;
 
     [gitDiffMenu addItem:[NSMenuItem separatorItem]];
 
-    [gitDiffMenu addItem:({
-        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Next Change"
-                                                          action:@selector(nextChangeAction:)
-                                                   keyEquivalent:@""];
-        menuItem.target = [GitChangeManager sharedManager];
-        menuItem;
-    })];
+    struct { NSString *title; SEL action; } items[] = {
+        @"Stage File", @selector(stageAction:),
+        @"Unstage File", @selector(unstageAction:),
+        @"Next Change", @selector(nextChangeAction:),
+        @"Previous Change", @selector(previousChangeAction:) };
 
-    [gitDiffMenu addItem:({
-        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Previous Change"
-                                                          action:@selector(previousChangeAction:)
-                                                   keyEquivalent:@""];
-        menuItem.target = [GitChangeManager sharedManager];
-        menuItem;
-    })];
+    for ( int i=0 ; i<sizeof items/sizeof items[0] ; i++ ) {
+        [gitDiffMenu addItem:({
+            NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:items[i].title
+                                                              action:items[i].action
+                                                       keyEquivalent:@""];
+            menuItem.target = [GitChangeManager sharedManager];
+            menuItem;
+        })];
+    }
 
     NSString *versionString = [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:@"CFBundleVersion"];
     NSMenuItem *gitDiffMenuItem = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"GitDiff (%@)", versionString]
@@ -181,7 +181,8 @@ static bool exists( const _M &map, const _K &key ) {
 
 @implementation GitFileDiffs
 
-+ (void)asyncUpdateFilepath:(NSString *)path {
++ (void)asyncUpdateFilepath:(NSString *)path
+{
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         (void)[[self alloc] initWithFilepath:path];
     });
@@ -266,11 +267,17 @@ static void handler( int sig ) {
     return self;
 }
 
+- (BOOL)hasChanges
+{
+    return !(modified.empty() && added.empty() && deleted.empty());
+}
+
 @end
 
 @implementation NSDocument(IDESourceCodeDocument)
 
-- (void)gitdiffUpdate {
+- (void)gitdiffUpdate
+{
     if ( [self isKindOfClass:gitDiffPlugin.sourceDocClass] ) {
         // could be synchronous with a very small delay building
         [GitFileDiffs asyncUpdateFilepath:[[self fileURL] path]];
@@ -285,7 +292,8 @@ static void handler( int sig ) {
 }
 
 // revert on change on disk
-- (void)gitdiff_closeToRevert {
+- (void)gitdiff_closeToRevert
+{
     [self gitdiff_closeToRevert];
     [self gitdiffUpdate];
 }
@@ -318,13 +326,14 @@ static void handler( int sig ) {
         [GitFileDiffs asyncUpdateFilepath:path];
     }
 
-    return diffs;
+    return [diffs hasChanges] ? diffs : nil;
 }
 
 @end
 
 @implementation NSString(GitDiff)
-- (NSUInteger)gdLineCount {
+- (NSUInteger)gdLineCount
+{
     return [[self componentsSeparatedByString:@"\n"] count];
 }
 @end
@@ -348,6 +357,8 @@ static void handler( int sig ) {
     GitFileDiffs *diffs = [self gitDiffs];
     if ( diffs ) {
 
+        NSInteger gutterMode = [[NSUserDefaults standardUserDefaults] integerForKey:@"GitDiffGutterMode"];
+
         for ( NSUInteger i=0 ; i<indexCount ; i++ ) {
             NSUInteger line = indexes[i];
             NSColor *highlight = !exists( diffs->added, line ) ? nil :
@@ -360,8 +371,6 @@ static void handler( int sig ) {
                 [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:line];
 
                 double gutterSize;
-                NSInteger gutterMode = [[NSUserDefaults standardUserDefaults] integerForKey:@"GitDiffGutterMode"];
-
                 switch (gutterMode) {
                     case GitDiffGutterTypeVerbose:
                         gutterSize = a0.size.width;
@@ -480,7 +489,8 @@ static void handler( int sig ) {
     return annotation;
 }
 
-- (void)showUndo {
+- (void)showUndo
+{
     if ( [gitDiffPlugin.popover superview] ) {
         NSButton *undoButton = gitDiffPlugin.colorsWindowController.undoButton;
         undoButton.target = self;
@@ -494,7 +504,8 @@ static void handler( int sig ) {
     }
 }
 
-- (void)performUndo:(NSButton *)sender {
+- (void)performUndo:(NSButton *)sender
+{
     IDESourceCodeEditor *editor = [GitChangeManager currentEditor];
     NSRange safeRange = NSMakeRange( gitDiffPlugin.undoRange.location-1, MAX(gitDiffPlugin.undoRange.length,1) );
 
@@ -535,7 +546,7 @@ static void handler( int sig ) {
 
     GitFileDiffs *diffs = [self gitDiffs];
 
-    if ( diffs  ) {
+    if ( diffs ) {
         if ( !diffs->lines ) {
             diffs->lines = [[self sourceTextView].string gdLineCount];
         }
@@ -566,7 +577,8 @@ static void handler( int sig ) {
 
 @implementation GitChangeManager
 
-+ (instancetype)sharedManager {
++ (instancetype)sharedManager
+{
     static GitChangeManager *_sharedManager = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -612,13 +624,18 @@ static void handler( int sig ) {
     return nil;
 }
 
-- (NSArray *)sortedDiffArray
-{
+- (NSString *)currentDocument {
     NSTextView *sourceTextView = [self textView];
-    if ( ![sourceTextView respondsToSelector:@selector(delegate)] ) return @[];
+    if ( ![sourceTextView respondsToSelector:@selector(delegate)] ) return nil;
 
     NSDocument *doc = [(id)[sourceTextView delegate] document];
-    NSString *path = [[doc fileURL] path];
+    return [[doc fileURL] path];
+}
+
+- (NSArray *)sortedDiffArray
+{
+    NSString *path = [self currentDocument];
+    if ( !path ) return @[];
     GitFileDiffs *diffs = gitDiffPlugin.diffsByFile[path];
 
     if (!diffs || [diffs->diffLines count] == 0) return @[];
@@ -685,6 +702,23 @@ static void handler( int sig ) {
         DVTTextDocumentLocation *location = [[self currentEditor] _documentLocationForLineNumber:gotoLine];
         [[self currentEditor] selectAndHighlightDocumentLocations:@[location]];
     }
+}
+
+- (void)gitAction:(NSString *)which {
+    NSString *path = [self currentDocument];
+    if ( path ) {
+        system( [[NSString stringWithFormat:@"cd \"%@\" && /usr/bin/git %@ \"%@\"",
+                  path.stringByDeletingLastPathComponent, which, path] UTF8String] );
+        [GitFileDiffs asyncUpdateFilepath:path];
+    }
+}
+
+- (void)stageAction:sender {
+    [self gitAction:@"stage"];
+}
+
+- (void)unstageAction:sender {
+    [self gitAction:@"reset HEAD"];
 }
 
 @end
