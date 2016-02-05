@@ -86,6 +86,9 @@ static GitDiff *gitDiffPlugin;
             [self swizzleClass:aClass
                       exchange:@selector(annotationAtSidebarPoint:)
                           with:@selector(gitdiff_annotationAtSidebarPoint:)];
+            [self swizzleClass:aClass
+                      exchange:@selector(mouseExited:)
+                          with:@selector(gitdiff_mouseExited:)];
 
             aClass = NSClassFromString(@"DVTMarkedScroller");
             [self swizzleClass:aClass
@@ -487,6 +490,14 @@ static void handler( int sig ) {
     }
 
     return annotation;
+}
+
+- (void)gitdiff_mouseExited:(id)arg {
+    [self gitdiff_mouseExited:arg];
+    if ( [gitDiffPlugin.popover superview] ) {
+        [gitDiffPlugin.popover removeFromSuperview];
+        [gitDiffPlugin.colorsWindowController.undoButton removeFromSuperview];
+    }
 }
 
 - (void)showUndo
