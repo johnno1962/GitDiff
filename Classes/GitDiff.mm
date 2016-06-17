@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#83 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#84 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -83,6 +83,10 @@ static GitDiff *gitDiffPlugin;
             [self swizzleClass:aClass
                       exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)
                           with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToReplace:getParaRectBlock:)];
+            [self swizzleClass:aClass
+                      exchange:@selector(_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToHighlight:linesToReplace:textView:getParaRectBlock:)
+                          with:@selector(gitdiff_drawLineNumbersInSidebarRect:foldedIndexes:count:linesToInvert:linesToHighlight:linesToReplace:textView:getParaRectBlock:)];
+
             [self swizzleClass:aClass
                       exchange:@selector(annotationAtSidebarPoint:)
                           with:@selector(gitdiff_annotationAtSidebarPoint:)];
@@ -349,14 +353,8 @@ static void handler( int sig ) {
 
 @implementation NSRulerView(GitDiff)
 
-// the line numbers sidebar is being redrawn
-- (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect
-                               foldedIndexes:(NSUInteger *)indexes
-                                       count:(NSUInteger)indexCount
-                               linesToInvert:(id)a3
-                              linesToReplace:(id)a4
-                            getParaRectBlock:rectBlock
-{
+- (void)gitdiffIndicatorsForLineIndexes:(NSUInteger *)indexes
+                                  count:(NSUInteger)indexCount {
     GitFileDiffs *diffs = [self gitDiffs];
     if ( diffs ) {
 
@@ -365,8 +363,8 @@ static void handler( int sig ) {
         for ( NSUInteger i=0 ; i<indexCount ; i++ ) {
             NSUInteger line = indexes[i];
             NSColor *highlight = !exists( diffs->added, line ) ? nil :
-                exists( diffs->modified, line ) ? gitDiffPlugin.colorsWindowController.modifiedColor :
-                                                    gitDiffPlugin.colorsWindowController.addedColor;
+            exists( diffs->modified, line ) ? gitDiffPlugin.colorsWindowController.modifiedColor :
+            gitDiffPlugin.colorsWindowController.addedColor;
             CGRect a0, a1;
 
             if ( highlight ) {
@@ -398,12 +396,44 @@ static void handler( int sig ) {
             }
         }
     }
+}
+
+// the line numbers sidebar is being redrawn
+- (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect
+                               foldedIndexes:(NSUInteger *)indexes
+                                       count:(NSUInteger)indexCount
+                               linesToInvert:(id)a3
+                              linesToReplace:(id)a4
+                            getParaRectBlock:rectBlock
+{
+    [self gitdiffIndicatorsForLineIndexes:indexes count:indexCount];
 
     [self gitdiff_drawLineNumbersInSidebarRect:rect
                                  foldedIndexes:indexes
                                          count:indexCount
                                  linesToInvert:a3
                                 linesToReplace:a4
+                              getParaRectBlock:rectBlock];
+}
+
+- (void)gitdiff_drawLineNumbersInSidebarRect:(CGRect)rect
+                        foldedIndexes:(NSUInteger *)indexes
+                                count:(NSUInteger)indexCount
+                        linesToInvert:(id)a3
+                     linesToHighlight:(id)a4
+                       linesToReplace:(id)a5
+                             textView:(id)a6
+                     getParaRectBlock:rectBlock
+{
+    [self gitdiffIndicatorsForLineIndexes:indexes count:indexCount];
+
+    [self gitdiff_drawLineNumbersInSidebarRect:rect
+                                 foldedIndexes:indexes
+                                         count:indexCount
+                                 linesToInvert:a3
+                              linesToHighlight:a4
+                                linesToReplace:a5
+                                      textView:a6
                               getParaRectBlock:rectBlock];
 }
 
