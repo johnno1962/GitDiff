@@ -14,5 +14,9 @@
 	<string>0.129 0.313 1 1</string>
 	<key>GitDiffDisplayAnnotation</key>
 	<true/>
+	<key>GitDiffCompareToHEAD</key>
+	<false/>
+	<key>GitDiffIgnoreSpaceChange</key>
+	<false/>
 </dict>
 </plist>

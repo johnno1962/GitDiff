@@ -1,8 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="11762" systemVersion="16D32" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7706"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11762"/>
+        <capability name="box content view" minToolsVersion="7.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="GitDiffColorsWindowController">
@@ -23,16 +25,16 @@
         <window title="GitDiff Configuration" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="196" y="240" width="308" height="350"/>
+            <rect key="contentRect" x="196" y="240" width="308" height="408"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="878"/>
-            <view key="contentView" id="EiT-Mj-1SZ">
-                <rect key="frame" x="0.0" y="5" width="308" height="350"/>
+            <view key="contentView" misplaced="YES" id="EiT-Mj-1SZ">
+                <rect key="frame" x="0.0" y="0.0" width="308" height="408"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <box autoresizesSubviews="NO" title="Colors" borderType="line" id="Ivu-Kd-Qvr">
-                        <rect key="frame" x="17" y="198" width="274" height="132"/>
+                    <box autoresizesSubviews="NO" borderType="line" title="Colors" id="Ivu-Kd-Qvr">
+                        <rect key="frame" x="17" y="256" width="274" height="132"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <view key="contentView">
+                        <view key="contentView" id="Ajp-ke-KiG">
                             <rect key="frame" x="1" y="1" width="272" height="116"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
@@ -137,11 +139,9 @@ Gw
                                 </button>
                             </subviews>
                         </view>
-                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
-                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </box>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="BPa-Fd-Sui">
-                        <rect key="frame" x="46" y="91" width="74" height="17"/>
+                        <rect key="frame" x="46" y="149" width="74" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Navigation:" id="7OE-Ja-0wQ">
                             <font key="font" metaFont="system"/>
@@ -150,7 +150,7 @@ Gw
                         </textFieldCell>
                     </textField>
                     <popUpButton verticalHuggingPriority="750" id="nV0-ew-buy">
-                        <rect key="frame" x="129" y="159" width="145" height="26"/>
+                        <rect key="frame" x="129" y="217" width="145" height="26"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="6ZP-Tm-stV">
                             <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
@@ -167,25 +167,19 @@ Gw
                             <binding destination="Y8c-8q-f8n" name="selectedIndex" keyPath="values.GitDiffGutterMode" id="ka5-nQ-F3G"/>
                         </connections>
                     </popUpButton>
-                    <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" id="Dhu-2Z-gBk">
-                        <rect key="frame" x="20" y="123" width="268" height="5"/>
+                    <box verticalHuggingPriority="750" boxType="separator" id="Dhu-2Z-gBk">
+                        <rect key="frame" x="20" y="181" width="268" height="5"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
-                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                        <font key="titleFont" metaFont="system"/>
                     </box>
-                    <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" id="RVS-81-zxO">
-                        <rect key="frame" x="28" y="54" width="268" height="5"/>
+                    <box verticalHuggingPriority="750" misplaced="YES" boxType="separator" id="RVS-81-zxO">
+                        <rect key="frame" x="21" y="112" width="268" height="5"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
-                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                        <font key="titleFont" metaFont="system"/>
                     </box>
                     <matrix verticalHuggingPriority="750" allowsEmptySelection="NO" autorecalculatesCellSize="YES" id="Okf-tP-Nw5">
-                        <rect key="frame" x="131" y="70" width="157" height="38"/>
+                        <rect key="frame" x="131" y="128" width="157" height="38"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                        <size key="cellSize" width="121" height="18"/>
+                        <size key="cellSize" width="119" height="18"/>
                         <size key="intercellSpacing" width="4" height="2"/>
                         <buttonCell key="prototype" type="radio" title="Radio" imagePosition="left" alignment="left" inset="2" id="ATZ-N2-spP">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -208,7 +202,7 @@ Gw
                         </connections>
                     </matrix>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="aVx-1I-iMp">
-                        <rect key="frame" x="34" y="164" width="91" height="17"/>
+                        <rect key="frame" x="34" y="222" width="91" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Gutter marks:" id="FKM-2f-yPZ">
                             <font key="font" metaFont="system"/>
@@ -217,7 +211,7 @@ Gw
                         </textFieldCell>
                     </textField>
                     <button id="IDW-WA-DHG">
-                        <rect key="frame" x="129" y="132" width="113" height="18"/>
+                        <rect key="frame" x="129" y="190" width="113" height="18"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="check" title="Show Popover" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="6fu-h1-g85">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -232,7 +226,7 @@ Gw
                         </connections>
                     </button>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="9m2-s3-2C7">
-                        <rect key="frame" x="40" y="23" width="132" height="17"/>
+                        <rect key="frame" x="40" y="81" width="132" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Revert Button Delay:" id="9Uo-tm-jud">
                             <font key="font" metaFont="system"/>
@@ -241,7 +235,7 @@ Gw
                         </textFieldCell>
                     </textField>
                     <textField verticalHuggingPriority="750" id="rYg-vV-duh">
-                        <rect key="frame" x="186" y="19" width="96" height="22"/>
+                        <rect key="frame" x="186" y="77" width="96" height="22"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="center" title="1.0" drawsBackground="YES" id="e6f-Wx-mTo">
                             <font key="font" metaFont="system"/>
@@ -256,9 +250,43 @@ Gw
                             </binding>
                         </connections>
                     </textField>
+                    <box verticalHuggingPriority="750" misplaced="YES" boxType="separator" id="w6S-pa-zgP">
+                        <rect key="frame" x="21" y="60" width="268" height="5"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    </box>
+                    <button misplaced="YES" id="cl4-Lq-fuU">
+                        <rect key="frame" x="129" y="38" width="132" height="18"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <buttonCell key="cell" type="check" title="Compare to HEAD" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Xe7-Cd-Rmt">
+                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <binding destination="Y8c-8q-f8n" name="value" keyPath="values.GitDiffCompareToHEAD" id="QWf-kZ-RyM">
+                                <dictionary key="options">
+                                    <integer key="NSNullPlaceholder" value="0"/>
+                                </dictionary>
+                            </binding>
+                        </connections>
+                    </button>
+                    <button misplaced="YES" id="uQx-g9-g5j">
+                        <rect key="frame" x="129" y="18" width="149" height="18"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <buttonCell key="cell" type="check" title="Ignore space change" bezelStyle="regularSquare" imagePosition="left" inset="2" id="TSr-41-PEq">
+                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <binding destination="Y8c-8q-f8n" name="value" keyPath="values.GitDiffIgnoreSpaceChange" id="fWJ-jD-6Y8">
+                                <dictionary key="options">
+                                    <integer key="NSNullPlaceholder" value="0"/>
+                                </dictionary>
+                            </binding>
+                        </connections>
+                    </button>
                 </subviews>
             </view>
-            <point key="canvasLocation" x="279" y="397"/>
+            <point key="canvasLocation" x="279" y="426"/>
         </window>
         <userDefaultsController representsSharedInstance="YES" id="Y8c-8q-f8n"/>
         <button toolTip="Revert to GIT version" id="WqR-fe-VTA">

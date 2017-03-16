@@ -205,8 +205,20 @@ static void handler( int sig ) {
 - (id)initWithFilepath:(NSString *)path
 {
     if ( path && (self = [super init]) ) {
-        NSString *command = [NSString stringWithFormat:@"cd \"%@\" && /usr/bin/git diff --no-ext-diff --no-color \"%@\"",
-                             [path stringByDeletingLastPathComponent], path];
+        NSMutableArray *extraPrefixArgs = [NSMutableArray new];
+
+        BOOL ignoreSpaceChange = [[NSUserDefaults standardUserDefaults] boolForKey:@"GitDiffIgnoreSpaceChange"];
+        if (ignoreSpaceChange) {
+            [extraPrefixArgs addObject:@"-b"];
+        }
+
+        BOOL compareToHEAD = [[NSUserDefaults standardUserDefaults] boolForKey:@"GitDiffCompareToHEAD"];
+        if (compareToHEAD) {
+            [extraPrefixArgs addObject:@"HEAD"];
+        }
+        
+        NSString *command = [NSString stringWithFormat:@"cd \"%@\" && /usr/bin/git diff --no-ext-diff --no-color %@ \"%@\"",
+                             [path stringByDeletingLastPathComponent], [extraPrefixArgs componentsJoinedByString:@" "], path];
         NSMutableSet *diffSet = [[NSMutableSet alloc] init];
         void (*savepipe)(int) = signal( SIGPIPE, handler );
 
