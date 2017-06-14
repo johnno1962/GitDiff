@@ -13,6 +13,8 @@ the [Xprobe Plugin](https://github.com/johnno1962/XprobePlugin) for Xcode plugin
 
 NOTE: GitDiff will not work if you are not showing line numbers in the Xcode Editor.
 
+Stop Press: There is a new version of GitDiff for Xcode 9: [GitDiff9](https://github.com/johnno1962/GitDiff9)
+
 ### MIT License
 
 Copyright (C) 2014-5 John Holdsworth
