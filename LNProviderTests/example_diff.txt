@@ -1,0 +1,96 @@
+diff --git a/LNXcodeSupport/LNFileHighlights.mm b/LNXcodeSupport/LNFileHighlights.mm
+index 894020a..e75cc24 100644
+--- a/LNXcodeSupport/LNFileHighlights.mm
++++ b/LNXcodeSupport/LNFileHighlights.mm
+@@ -7,6 +7,7 @@
+ //
+ 
+ #import "LNFileHighlights.h"
++#import "NSColor+NSString.h"
+ #import <map>
+ 
+ // JSON wire format
+@@ -19,7 +20,7 @@ - (void)updadateFrom:(LNHighlightMap *)map {
+     if (NSString *start = map[@"start"])
+         self.start = start.integerValue;
+     if (NSString *color = map[@"color"])
+-        self.color = [NSColor colorWithCIColor:[CIColor colorWithString:color]];
++        self.color = [NSColor colorWithString:color];
+     // hover text
+     if (NSString *text = map[@"text"])
+         self.text = text;
+@@ -37,13 +38,21 @@ - (instancetype)copy {
+     return copy;
+ }
+ 
++- (BOOL)isEqual:(LNHighlightElement *)object {
++    return
++        self.start == object.start &&
++        [self.color isEqual:object.color] &&
++        [self.text isEqualToString:object.text] &&
++        [self.range isEqualToString:object.range];
++}
++
+ @end
+ 
+ @implementation LNFileHighlights {
+     std::map<NSInteger,LNHighlightElement *> elemants;
+ }
+ 
+-- (instancetype)initHighlights:(NSData *)data {
++- (instancetype)initWithData:(NSData *)data {
+     if ( (self = [super init]) ) {
+         NSError *error;
+         LNHighlightInfo *info = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+@@ -80,11 +89,11 @@ - (instancetype)initHighlights:(NSData *)data {
+     return self;
+ }
+ 
+-- (void)setObject:(LNHighlightElement *)obj atIndexedSubscript:(NSUInteger)line {
++- (void)setObject:(LNHighlightElement *)obj atIndexedSubscript:(NSInteger)line {
+     elemants[line] =  obj;
+ }
+ 
+-- (LNHighlightElement *)objectAtIndexedSubscript:(NSUInteger)line {
++- (LNHighlightElement *)objectAtIndexedSubscript:(NSInteger)line {
+     return elemants.find(line) != elemants.end() ? elemants[line] : nil;
+ }
+ 
+@@ -95,25 +104,21 @@ - (void)foreachHighlight:(void (^)(NSInteger line, LNHighlightElement *element))
+ 
+ - (NSData *)jsonData {
+     NSMutableDictionary *info = [NSMutableDictionary new];
+-    LNHighlightElement *last = nil;
+-    NSUInteger lastLine = 0;
+-
+-    for ( NSInteger line = 1, found = 0 ; found < elemants.size() ; found++ ) {
+-        while (elemants.find(line) == elemants.end())
+-            line++;
++    __block LNHighlightElement *last = nil;
++    __block NSUInteger lastLine = 0;
+ 
+-        if (elemants[line] == last) {
++    [self foreachHighlight:^(NSInteger line, LNHighlightElement * _Nonnull element) {
++        if (elemants[line] == last)
+             info[@(line).stringValue] = @{@"alias": @(lastLine).stringValue};
+-            continue;
++        else {
++            lastLine = line;
++            last = elemants[line];
++            info[@(line).stringValue] = @{@"start": @(last.start).stringValue,
++                                          @"color": last.color.stringRepresentation ?: NULL_COLOR,
++                                          @"text": last.text,
++                                          @"range": last.range};
+         }
+-
+-        lastLine = line;
+-        last = elemants[line];
+-        info[@(line).stringValue] = @{@"start": @(last.start).stringValue,
+-                                      @"color": [CIColor colorWithCGColor:last.color.CGColor].stringRepresentation,
+-                                      @"text": last.text,
+-                                      @"range": last.range};
+-    }
++    }];
+ 
+     return [NSJSONSerialization dataWithJSONObject:info options:0 error:NULL];
+ }

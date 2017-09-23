@@ -1,38 +1,27 @@
-# GitDiff Xcode Plugin
 
-With thanks to the genius who suggested this plugin, GitDiff displays deltas against a git repo in the Xcode
-source editor once you've saved the file. To use, copy this repo to your machine, build it and restart Xcode.
-Differences should then be highlighted in orange for lines that have been modified and blue for new code.
-A red line indicates code has been removed. Hover over deleted/modified line number to see original source
-and after a second a button will appear allowing you to revert the change.
+# GitDiff9  - GitDiff for Xcode 9
 
-![Icon](http://injectionforxcode.johnholdsworth.com/gitdiff2.png)
+A port of the "GitDiff" Xcode plugin to the Xcode 9 beta now that the Source editor has been implemented in Swift. It uses an extensible framework of generalised providers of line number gutter highlights with which it communicates using JSON IPC. This version of GitDiff includes the implementations for four types of line number highlighters:
 
-This Plugin is also available through the [Alcatraz](http://alcatraz.io/) meta-plugin and was developed using
-the [Xprobe Plugin](https://github.com/johnno1962/XprobePlugin) for Xcode plugin developers.
+* Unstaged differences against a project's git repo
+* Highlight of changes committed in the last week
+* Format linting hints provided by swiftformat and clang-format
+* A viewer that makes explicit inferred types in declarations.
 
-NOTE: GitDiff will not work if you are not showing line numbers in the Xcode Editor.
+To use, clone this project and build target "LNXcodeSupport". You'll need to [unsign your Xcode binary](https://github.com/fpg1503/MakeXcodeGr8Again) for the Xcode side of the plugin to load. The user interface is largely as it was before.
 
-Stop Press: There is a new version of GitDiff for Xcode 9: [GitDiff9](https://github.com/johnno1962/GitDiff9)
+![Icon](http://johnholdsworth.com/gitdiff9.png)
 
-### MIT License
+Lines that have been changed relative to the repo are highlighted in amber and new lines highlighted in blue. Code lint suggestions are highlighted in dark blue and lines with a recent commit to the repo (the last 7 days by default) are highlighted in light green, fading with time.
 
-Copyright (C) 2014-5 John Holdsworth
+Hovering over a change or lint highlight will overlay the previous or suggested version over the source editor and if you would like to revert the code change or apply the lint suggestion, continue hovering over the highlight until a very small button appears and click on it. The plugin runs a menubar app that contains colour preferences and allows you to turn on and off individual highlights.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
-the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, 
-and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+![Icon](http://johnholdsworth.com/lnprovider9a.png)
 
-The above copyright notice and this permission notice shall be included in all copies or substantial 
-portions of the Software.
+### Expandability
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
-LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The new implementation has been generalised to provide line number highlighting as a service from inside a new Legacy Xcode plugin. The project includes an menubar app "LNProvider" which is run to provide the default implementations using XPC. Any application can register with the plugin to provide line number highlights if it follows the Distributed Objects messaging protocol documented in "LNExtensionProtocol.h". Whenever a file is saved or reloaded, a call is made from the plugin to your application to provide JSON describing the intended highlights, their colours and any associated text. See the document "LineNumberPlugin.pages" for details about the architecture.
 
-### [DiffMatchPatch](https://github.com/inquisitiveSoft/DiffMatchPatch-ObjC) License
+### Code linting
 
-This plugin includes code from the Objective-C port of Google DiffMatchPatch under an Apache License.
+This repo includes binary releases of [swiftformat](https://github.com/nicklockwood/SwiftFormat) and [clang-format](https://clang.llvm.org/docs/ClangFormatStyleOptions.html) under their respective licenses. To modify code linting preferences, edit the files swift_format.sh and clang_format.sh in the "FormatImpl" directory and rebuild the plugin.
