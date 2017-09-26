@@ -133,7 +133,7 @@ static LNXcodeSupport *lineNumberPlugin;
     // update if not already in memory or 60 seconds has passed
     NSTimeInterval stale = [NSDate timeIntervalSinceReferenceDate] - REFRESH_INTERVAL;
     for (LNExtensionClient *extension in self.extensions) {
-        if (extension[filepath].updated < stale) {
+        if (filepath && extension[filepath].updated < stale) {
             if (!extension[filepath])
                 extension.highightsByFile[filepath] = [[LNFileHighlights alloc] initWithData:nil
                                                                                      service:extension.serviceName];
