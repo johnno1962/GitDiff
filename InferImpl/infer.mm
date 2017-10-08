@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonCrypto.h>
-#import <sys/stat.h>
 #import <regex.h>
 
 #import "sourcekitd.h"
@@ -75,7 +74,7 @@ int main(int argc, const char * argv[]) {
 @end
 
 @implementation PhaseOneFindArguemnts {
-    char logFile[PATH_MAX], commandBuffer[1024*1024];
+    char logFile[PATH_MAX], commandBuffer[1024*1024]; // max command is 256k on Darwin
 }
 
 - (NSString *)fileWithExtension:(NSString *)extension inFiles:(NSArray<NSString *> *)files {
@@ -91,7 +90,7 @@ int main(int argc, const char * argv[]) {
         return nil;
 
     NSFileManager *manager = [NSFileManager defaultManager];
-    NSArray<NSString *> *fileList = [manager directoryContentsAtPath:directory];
+    NSArray<NSString *> *fileList = [manager contentsOfDirectoryAtPath:directory error:NULL];
 
     if (NSString *projectFile =
         [self fileWithExtension:@"xcworkspace" inFiles:fileList] ?:
@@ -139,11 +138,11 @@ int main(int argc, const char * argv[]) {
         }
 
         [grepTask waitUntilExit];
-        fclose(grepFILE);
+        pclose(grepFILE);
     }
 
     [lsTask waitUntilExit];
-    fclose(logsFILE);
+    pclose(logsFILE);
     return nil;
 }
 
@@ -222,17 +221,26 @@ uint64_t swap_uint64(uint64_t val) {
 
 @implementation PhaseTwoInferAssignments
 
-static auto EOS = (const char *)(uintptr_t)~0ll;
-
+// find first occurance of either of two strings in "big"
 const char *strstr2(const char *big, const char *str1, const char *str2) {
     const char *place1 = strstr(big, str1), *place2 = strstr(big, str2);
-    if ((place1 ?: EOS) < (place2 ?: EOS))
+    static const char * EOM = (const char *)~(uintptr_t)0;
+    if ((place1 ?: EOM) < (place2 ?: EOM))
         return place1;
     else
         return place2;
 }
 
 - (int)inferAssignmentsFor:(const char *)sourceFile arguments:(const char **)argv {
+    NSMutableData *sourceData = [NSMutableData dataWithContentsOfFile:[NSString stringWithUTF8String:sourceFile]];
+    if (!sourceData) {
+        fprintf(stderr, "Could not load source file: %s\n", sourceFile);
+        exit(1);
+    }
+
+    const char *input = (const char *)[sourceData bytes], eos = '\000';
+    [sourceData appendBytes:&eos length:1];
+
     sourcekitd_initialize();
 
     int argc = 0;
@@ -243,23 +251,6 @@ const char *strstr2(const char *big, const char *str1, const char *str2) {
     }
 
     sourcekitd_object_t compilerArgs = sourcekitd_request_array_create(objects, argc);
-
-    struct stat stats;
-    stat(sourceFile, &stats);
-
-    char *input = (char *)malloc(stats.st_size+1);
-    FILE *inputFILE = fopen(sourceFile, "r");
-    if (!inputFILE){
-        fprintf(stderr, "Could not open source file: %s\n", sourceFile);
-        exit(1);
-    }
-    if (fread((void *)input, 1, stats.st_size, inputFILE) != stats.st_size) {
-        fprintf(stderr, "Could not read source file: %s\n", sourceFile);
-        exit(1);
-    }
-
-    input[stats.st_size] = '\000';
-    fclose(inputFILE);
 
     sourcekitd_uid_t nameID = sourcekitd_uid_get_from_cstr("key.name");
     sourcekitd_uid_t requestID = sourcekitd_uid_get_from_cstr("key.request");
@@ -279,7 +270,7 @@ const char *strstr2(const char *big, const char *str1, const char *str2) {
     regex_t assigns, ends;
     if (regcomp(&assigns, "[ \t\n](let|var)[ \t]", REG_EXTENDED|REG_ENHANCED) ||
         regcomp(&ends, "[ \\t]=[ \\t]|\\n", REG_EXTENDED|REG_ENHANCED)) {
-        fprintf(stderr, "Regex error\n");
+        fprintf(stderr, "Regex compilation error\n");
         exit(1);
     }
 
