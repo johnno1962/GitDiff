@@ -127,7 +127,7 @@ open class DefaultManager: NSObject {
     }
 
     open var inferColor: NSColor {
-        return defaultColor(for: inferKey, default: "1 0 0 1")
+        return defaultColor(for: inferKey, default: "0.646293 0.919667 1 1")
     }
 
     open var showHead: Bool {

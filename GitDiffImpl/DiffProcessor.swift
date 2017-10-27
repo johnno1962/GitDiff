@@ -20,7 +20,7 @@ class DiffProcessor {
     }
 
     func delta(line: String) -> Delta {
-        if let match = regex.firstMatch(in: line, options: [], range: NSMakeRange(0, line.characters.count)) {
+        if let match = regex.firstMatch(in: line, options: [], range: NSMakeRange(0, line.utf16.count)) {
             if let lineno = match.group(1, in: line) {
                 return .start(lineno: Int(lineno) ?? -1)
             } else if let delta = match.group(2, in: line), let text = match.group(3, in: line) {

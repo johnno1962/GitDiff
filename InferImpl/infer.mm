@@ -1,9 +1,12 @@
 //
-//  main.mm
+//  infer.mm
 //  infer
 //
 //  Created by John Holdsworth on 21/08/2017.
 //  Copyright © 2017 John Holdsworth. All rights reserved.
+//
+//  Makes explicit, inferred types in a Swift source.
+//  Requires project to have been built & indexed.
 //
 
 #import <Foundation/Foundation.h>
@@ -13,20 +16,21 @@
 #import "sourcekitd.h"
 
 @interface PhaseOneFindArguemnts : NSObject
-- (NSString  * _Nullable)projectForSourceFile:(NSString *)sourceFile;
+- (NSString * _Nullable)projectForSourceFile:(NSString *)sourceFile;
 - (NSString * _Nullable)logDirectoryForProject:(NSString *)projectPath;
 - (NSString * _Nullable)commandLineForPrimaryFile:(NSString *)sourceFile
                                    inLogDirectory:(NSString *)logDirectory;
 @end
 
 @interface PhaseTwoInferAssignments : NSObject
-- (int)inferAssignmentsFor:(const char *)sourceFile arguments:(const char **)argv;
+- (int)inferAssignmentsFor:(const char *)sourceFile
+                 arguments:(const char **)argv into:(FILE *)output;
 @end
 
 int main(int argc, const char * argv[]) {
     const char *inferBinary = argv[0];
     if (argc < 2) {
-        fprintf(stderr, "Usage %s <swift source>\n", inferBinary);
+        fprintf(stderr, "Usage: %s <full path to swift source>\n", inferBinary);
         exit(1);
     }
     else if(argc == 2) {
@@ -34,7 +38,7 @@ int main(int argc, const char * argv[]) {
         NSString *sourceFile = [NSString stringWithUTF8String:argv[1]];
         NSString *projectPath = [logReader projectForSourceFile:sourceFile];
         if (!projectPath) {
-            fprintf(stderr, "Could not find project for source file\n");
+            fprintf(stderr, "Could not find project for source file: %s\n", argv[1]);
             exit(1);
         }
 
@@ -42,7 +46,8 @@ int main(int argc, const char * argv[]) {
         NSString *compileCommand = [logReader commandLineForPrimaryFile:sourceFile
                                                          inLogDirectory:logDirectory];
         if (!compileCommand) {
-            fprintf(stderr, "Could not find compile command for in log directory %s\n", logDirectory.UTF8String);
+            fprintf(stderr, "Could not find compile command for '%s' in log directory: %s\n",
+                    argv[1], logDirectory.UTF8String);
             exit(1);
         }
 
@@ -57,7 +62,7 @@ int main(int argc, const char * argv[]) {
     }
     else {
         auto inferer = [PhaseTwoInferAssignments new];
-        exit([inferer inferAssignmentsFor:argv[1] arguments:argv + 4]);
+        exit([inferer inferAssignmentsFor:argv[1] arguments:argv + 4 into:stdout]);
     }
 }
 
@@ -221,25 +226,18 @@ uint64_t swap_uint64(uint64_t val) {
 
 @implementation PhaseTwoInferAssignments
 
-// find first occurance of either of two strings in "big"
-const char *strstr2(const char *big, const char *str1, const char *str2) {
-    const char *place1 = strstr(big, str1), *place2 = strstr(big, str2);
-    static const char * EOM = (const char *)~(uintptr_t)0;
-    if ((place1 ?: EOM) < (place2 ?: EOM))
-        return place1;
-    else
-        return place2;
-}
-
-- (int)inferAssignmentsFor:(const char *)sourceFile arguments:(const char **)argv {
-    NSMutableData *sourceData = [NSMutableData dataWithContentsOfFile:[NSString stringWithUTF8String:sourceFile]];
+- (int)inferAssignmentsFor:(const char *)sourceFile arguments:(const char **)argv into:(FILE *)output {
+    NSError *error;
+    NSMutableData *sourceData = [NSMutableData dataWithContentsOfFile:[NSString stringWithUTF8String:sourceFile]
+                                                              options:0 error:&error];
     if (!sourceData) {
-        fprintf(stderr, "Could not load source file: %s\n", sourceFile);
-        exit(1);
+        fprintf(stderr, "Could not load source file '%s': %s\n",
+                sourceFile, error.localizedDescription.UTF8String);
+        return 1;
     }
 
-    const char *input = (const char *)[sourceData bytes], eos = '\000';
-    [sourceData appendBytes:&eos length:1];
+    const char *input = (const char *)[sourceData bytes], eos = '\000', *next = input;
+    [sourceData appendBytes:&eos length:sizeof eos];
 
     sourcekitd_initialize();
 
@@ -267,31 +265,23 @@ const char *strstr2(const char *big, const char *str1, const char *str2) {
     sourcekitd_uid_t offsetID = sourcekitd_uid_get_from_cstr("key.offset");
     sourcekitd_uid_t declID = sourcekitd_uid_get_from_cstr("key.fully_annotated_decl");
 
-    regex_t assigns, ends;
-    if (regcomp(&assigns, "[ \t\n](let|var)[ \t]", REG_EXTENDED|REG_ENHANCED) ||
-        regcomp(&ends, "[ \\t]=[ \\t]|\\n", REG_EXTENDED|REG_ENHANCED)) {
-        fprintf(stderr, "Regex compilation error\n");
-        exit(1);
+    // sourcekit cursor ops deal in byte offsets
+    regex_t assigns;
+    if (int err = regcomp(&assigns, "[ \t\n](let|var)[ \t]+([^\n,)]+?)[ \t]=[ \t]", REG_EXTENDED|REG_ENHANCED)) {
+        char errbuff[1000];
+        regerror(err, &assigns, errbuff, sizeof errbuff);
+        fprintf(stderr, "Regex compilation error: %s\n", errbuff);
+        return 1;
     }
 
-    regmatch_t matches[1];
-    int skip = strlen(" let ");
-    const char *location = input, *next = location, *end;
+    regmatch_t matches[3];
 
-    for(; regexec(&assigns, next, 1, matches, 0) != REG_NOMATCH; next = end) {
-        next += matches[0].rm_so;
+    while(regexec(&assigns, next, sizeof matches/sizeof matches[0], matches, 0) != REG_NOMATCH) {
+        const char *varStart = next + matches[2].rm_so, *equals = next + matches[2].rm_eo;
+        ptrdiff_t byteOffset = varStart - input;
 
-        end = next + skip;
-        if (regexec(&ends, end, 1, matches, 0) == REG_NOMATCH) {
-            NSLog(@"Unable to find end of declaration: %.200s", end);
-            continue;
-        }
-        end += matches[0].rm_so;
+        next += fwrite((void *)next, 1, matches[1].rm_so, output);
 
-        if (*end == '\n')
-            continue;
-
-        ptrdiff_t byteOffset = next + skip - input;
         sourcekitd_request_dictionary_set_int64(cursorRequest, offsetID, byteOffset);
 
         sourcekitd_response_t response = sourcekitd_send_request_sync(cursorRequest);
@@ -300,13 +290,11 @@ const char *strstr2(const char *big, const char *str1, const char *str2) {
             continue;
         }
         else {
-            fwrite((void *)location, 1, ++next - location, stdout);
-
             sourcekitd_variant_t dict = sourcekitd_response_get_value(response);
             if (const char *declaration = sourcekitd_variant_dictionary_get_string(dict, declID)) {
-                const char *replacement = strstr2(declaration, "let</syntaxtype.keyword>", "var</syntaxtype.keyword>");
-
-                BOOL inTag = 0;
+                const char *replacement = strstr(declaration, "let</syntaxtype.keyword>") ?:
+                                          strstr(declaration, "var</syntaxtype.keyword>") ?: "NODECL";
+                int inTag = 0;
                 while (char ch = *replacement++) {
                     switch (ch) {
                         case '<': case '{':
@@ -317,32 +305,33 @@ const char *strstr2(const char *big, const char *str1, const char *str2) {
                             break;
                         case '&':
                             if (strncmp(replacement, "lt;", 3) == 0) {
-                                fputc('<', stdout);
+                                fputc('<', output);
                                 replacement += 3;
                                 break;
                             }
                             else if (strncmp(replacement, "gt;", 3) == 0) {
-                                fputc('>', stdout);
+                                fputc('>', output);
                                 replacement += 3;
                                 break;
                             }
                         default:
                             if (!inTag && !(ch == ' ' &&
                                             (*replacement == ':' || *replacement == ' ' || *replacement == '{')))
-                                fputc(ch, stdout);
+                                fputc(ch, output);
                     }
                 }
             }
             else {
-                fwrite((void *)next, 1, end - next, stdout);
+                fwrite((void *)next, 1, equals - next, output);
             }
         }
 
         sourcekitd_response_dispose(response);
-        location = end;
+        next = equals;
     }
 
-    fwrite((void *)location, 1, strlen(location), stdout);
+    fwrite((void *)next, 1, strlen(next), output);
+    fflush(output);
     return 0;
 }
 
