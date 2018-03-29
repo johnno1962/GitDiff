@@ -135,7 +135,7 @@ open class DefaultManager: NSObject {
     }
 
     @IBAction open func showHeadChanged(sender: NSButton) {
-        defaults.set(sender.state == NSOnState, forKey: showHeadKey)
+        defaults.set(sender.state == .on, forKey: showHeadKey)
     }
 
     @IBAction open func recentChanged(sender: NSTextField) {

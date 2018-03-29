@@ -12,11 +12,11 @@ open class LNExtensionBase: NSObject {
 
     var owner: LNExtensionPlugin!
 
-    open func getConfig(_ callback: @escaping LNConfigCallback) {
+    @objc open func getConfig(_ callback: @escaping LNConfigCallback) {
         callback(["config": "here"])
     }
 
-    open func ping(_ test: Int32, callback: @escaping (Int32) -> Void) {
+    @objc open func ping(_ test: Int32, callback: @escaping (Int32) -> Void) {
         callback(test + 1000)
     }
 

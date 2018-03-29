@@ -34,7 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         startServiceAndRegister(checkButton: gitDiffChecked)
         startServiceAndRegister(checkButton: gitBlameChecked)
         startServiceAndRegister(checkButton: inferChecked)
-        let statusBar = NSStatusBar.system()
+        let statusBar = NSStatusBar.system
         statusItem = statusBar.statusItem(withLength: statusBar.thickness)
         statusItem.toolTip = "GitDiff Preferences"
         statusItem.highlightMode = true
@@ -43,8 +43,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.isEnabled = true
         statusItem.title = ""
         setMenuIcon(tiffName: "icon_16x16")
-        NSColorPanel.shared().showsAlpha = true
-        window.appearance = NSAppearance(named: NSAppearanceNameVibrantDark)
+        NSColorPanel.shared.showsAlpha = true
+        window.appearance = NSAppearance(named: NSAppearance.Name.vibrantDark)
     }
 
     func setMenuIcon(tiffName: String) {
@@ -62,13 +62,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func startServiceAndRegister(checkButton: NSButton) {
-        if checkButton.state == NSOnState, let serviceName = buttonMap[checkButton] {
+        if checkButton.state == .on, let serviceName = buttonMap[checkButton] {
             services.append(LNExtensionClient(serviceName: serviceName, delegate: nil))
         }
     }
 
     @IBAction func serviceDidChange(checkButton: NSButton) {
-        if checkButton.state == NSOnState {
+        if checkButton.state == .on {
             startServiceAndRegister(checkButton: checkButton)
         } else if let serviceName = buttonMap[checkButton] {
             services.first(where: { $0.serviceName == serviceName })?.deregister()

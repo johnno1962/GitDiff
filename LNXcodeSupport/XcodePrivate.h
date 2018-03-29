@@ -85,3 +85,8 @@
 @interface SourceEditorGutterMarginContentView : NSView
 - (NSDictionary<NSNumber *, SourceEditorFontSmoothingTextLayer *> *)lineNumberLayers;
 @end
+
+@interface NSScroller(DVTMarkedScroller)
+- (void)clearDiffMarks ;
+- (void)addMark:(double)a0 onLine:(long)a1 ofType:(unsigned long)a2 ;
+@end

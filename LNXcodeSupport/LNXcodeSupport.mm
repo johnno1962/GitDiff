@@ -5,6 +5,10 @@
 //  Created by John Holdsworth on 31/03/2017.
 //  Copyright © 2017 John Holdsworth. All rights reserved.
 //
+//  Repo: https://github.com/johnno1962/GitDiff
+//
+//  $Id: //depot/GitDiff/LNXcodeSupport/LNXcodeSupport.mm#7 $
+//
 
 #import "LNXcodeSupport.h"
 #import "LNXcodeSupport-Swift.h"
@@ -192,8 +196,8 @@ static LNXcodeSupport *lineNumberPlugin;
 @implementation NSScroller (LineNumber)
 
 - (NSString *)editedDocPath {
-    return [[[[(SourceCodeEditorContainerView *)self.superview.superview.superview.superview
-               editor] document] fileURL] path];
+    return [[[[KeyPath objectFor:@"editor" from:self.superview.superview.superview.superview]
+              document] fileURL] path];
 }
 
 // scroll bar overview
@@ -216,6 +220,8 @@ static LNXcodeSupport *lineNumberPlugin;
     [lineNumberPlugin performSelector:@selector(updateGutter:) withObject:filepath afterDelay:.1];
 }
 
+static CGFloat gutterWidth;
+
 - (void)updateLineNumberFlecksFor:(NSString *)filepath {
     NSView *floatingContainer = self.superview.subviews[1];
     NSArray *floating = floatingContainer.subviews;
@@ -227,22 +233,28 @@ static LNXcodeSupport *lineNumberPlugin;
         highlightGutter = [[LNHighlightGutter alloc] initWithFrame:NSZeroRect];
         [floatingContainer addSubview:highlightGutter];
     } else
-        lineNumberGutter = [floating objectAtIndex:floating.count - 2];
+        lineNumberGutter = floating.firstObject;
 
     NSLog(@"updateLineNumberFlecksFor: %@ %@ %@", highlightGutter,
           NSStringFromRect(highlightGutter.frame), lineNumberGutter);
-    if (![lineNumberGutter respondsToSelector:@selector(lineNumberLayers)])
+
+    static Class gutterContentClasss;
+    if (!gutterContentClasss)
+        gutterContentClasss = objc_getClass("SourceEditor.SourceEditorGutterMarginContentView");
+    if (![lineNumberGutter isKindOfClass:gutterContentClasss])
         return;
 
     NSRect rect = lineNumberGutter.frame;
+    gutterWidth = rect.size.width;
+
     rect.origin.y = 0.;
-    rect.origin.x += rect.size.width - 3.;
+    rect.origin.x += gutterWidth - 3.;
     rect.size.width = 8.;
     rect.size.height += 5000.;
     if (!NSEqualRects(highlightGutter.frame, rect))
         highlightGutter.frame = rect;
 
-    NSDictionary *lineNumberLayers = [lineNumberGutter lineNumberLayers];
+    NSDictionary *lineNumberLayers = [KeyPath objectFor:@"lineNumberLayers" from:lineNumberGutter];
     NSMutableArray<LNHighlightFleck *> *next = [NSMutableArray new];
     SourceEditorContentView *sourceTextView = self.superview.subviews[0].subviews[0];
     CGFloat lineHeight = [sourceTextView defaultLineHeight];
@@ -270,6 +282,11 @@ static LNXcodeSupport *lineNumberPlugin;
         }
     }
 
+    #define NSOrderedCompare(a, b) a<b ? NSOrderedAscending : a>b ? NSOrderedDescending : NSOrderedSame
+    [next sortUsingComparator:^NSComparisonResult(LNHighlightFleck *obj1, LNHighlightFleck *obj2) {
+        return NSOrderedCompare(obj1.yoffset, obj2.yoffset);
+    }];
+
     if (![[highlightGutter subviews] isEqualToArray:next]) {
         [[[highlightGutter subviews] copy] makeObjectsPerformSelector:@selector(removeFromSuperview)];
         for (LNHighlightFleck *fleck in next)
@@ -292,27 +309,36 @@ static LNXcodeSupport *lineNumberPlugin;
     CGFloat scale = lines * lineHeight < NSHeight(self.frame) ? lineHeight : NSHeight(self.frame) / lines;
     NSMutableArray *marks = [NSMutableArray new], *markRects = [NSMutableArray new];
 
+    static Class markerListClass9_2;
+    if (!markerListClass9_2 && (markerListClass9_2 = objc_getClass("_DVTMarkerList"))) {
+        markerListClass9_2 = objc_allocateClassPair(markerListClass9_2, "ln_DVTMarkerList", 0);
+        class_addMethod(markerListClass9_2, @selector(_recomputeMarkRects),
+                        imp_implementationWithBlock(^{}), "v16@0:8");
+        objc_registerClassPair(markerListClass9_2);
+    }
+
+    if (!markerListClass9_2)
+        [self clearDiffMarks];
+
     for (LNExtensionClient *extension in lineNumberPlugin.extensions) {
         if (LNFileHighlights *diffs = extension[filepath]) {
             [diffs foreachHighlightRange:^(NSRange range, LNHighlightElement *element) {
-                NSRect rect = NSMakeRect(4., (range.location - 1) * scale, 2., MAX(range.length * scale, 2.));
-                [marks addObject:@((range.location - 1.) / lines)];
-                [markRects addObject:[NSValue valueWithRect:rect]];
+                if (markerListClass9_2) {
+                    NSRect rect = NSMakeRect(4., (range.location - 1) * scale, 2., MAX(range.length * scale, 2.));
+                    [marks addObject:@((range.location - 1.) / lines)];
+                    [markRects addObject:[NSValue valueWithRect:rect]];
+                } else
+                    [self addMark:(range.location - 1.) / lines onLine:range.location ofType:2];
             }];
         }
     }
 
-    static Class markerListClass;
-    if (!markerListClass) {
-        markerListClass = objc_allocateClassPair(objc_getClass("_DVTMarkerList"), "ln_DVTMarkerList", 0);
-        class_addMethod(markerListClass, @selector(_recomputeMarkRects), imp_implementationWithBlock(^{}), "v16@0:8");
-        objc_registerClassPair(markerListClass);
+    if (markerListClass9_2) {
+        _DVTMarkerList *markers = [[markerListClass9_2 alloc] initWithSlotRect:rect];
+        [markers setValue:marks forKey:@"_marks"];
+        [markers setValue:markRects forKey:@"_markRects"];
+        [self setValue:markers forKey:@"_diffMarks"];
     }
-
-    _DVTMarkerList *markers = [[markerListClass alloc] initWithSlotRect:rect];
-    [markers setValue:marks forKey:@"_marks"];
-    [markers setValue:markRects forKey:@"_markRects"];
-    [self setValue:markers forKey:@"_diffMarks"];
 }
 
 @end
@@ -361,7 +387,7 @@ static LNXcodeSupport *lineNumberPlugin;
     CGFloat width = NSWidth(sourceTextView.frame);
     CGFloat height = lineHeight * [popover.string numberOfLines];
 
-    popover.frame = NSMakeRect(sourceTextView.layoutBounds.origin.x - 5., self.yoffset - 4., width, height);
+    popover.frame = NSMakeRect(gutterWidth + 5., self.yoffset - 4., width, height);
 
     NSLog(@"%@ %f %f - %@ %@", NSStringFromRect(popover.frame), lineHeight, height, self.element.range, sourceTextView);
 

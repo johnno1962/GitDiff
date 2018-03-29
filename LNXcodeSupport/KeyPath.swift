@@ -16,7 +16,16 @@ import Foundation
             for (name, value) in Mirror(reflecting: out).children {
                 if name == key || name == key + ".storage" {
                     let mirror = Mirror(reflecting: value)
-                    if mirror.displayStyle == .optional,
+                    if name == "lineNumberLayers" {
+                        let dict = NSMutableDictionary()
+                        for (_, pair) in mirror.children {
+                            let children = Mirror(reflecting: pair).children
+                            let key = children.first!.value as! Int
+                            let value = children.dropFirst().first!.value
+                            dict[NSNumber(value: key)] = value
+                        }
+                        out = dict
+                    } else if mirror.displayStyle == .optional,
                         let value = mirror.children.first?.value {
                         out = value as AnyObject
                     } else {

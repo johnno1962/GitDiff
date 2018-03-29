@@ -35,7 +35,7 @@ class DiffProcessor {
     }
 
     func textDiff(_ inserted: String, against deleted: String, defaults: DefaultManager) -> NSAttributedString {
-        let attributes = [NSForegroundColorAttributeName: defaults.extraColor]
+        let attributes = [NSAttributedStringKey.foregroundColor: defaults.extraColor]
         let attributed = NSMutableAttributedString()
 
         for diff in diff_diffsBetweenTexts(deleted, inserted) {
@@ -124,8 +124,8 @@ class DiffProcessor {
 extension NSTextCheckingResult {
 
     func group(_ group: Int, in string: String) -> String? {
-        if rangeAt(group).location != NSNotFound {
-            return string[rangeAt(group)]
+        if range(at: group).location != NSNotFound {
+            return string[range(at: group)]
         }
         return nil
     }
@@ -139,11 +139,11 @@ extension String {
     }
 
     public subscript(range: NSRange) -> String {
-        return self[range.location ..< range.location + range.length]
+        return Range(range, in: self).flatMap { String(self[$0]) } ?? "??"
     }
 
     public subscript(r: Range<Int>) -> String {
-        return String(describing: utf16[UTF16Index(r.lowerBound) ..< UTF16Index(r.upperBound)])
+        return self[NSMakeRange(r.lowerBound, r.upperBound - r.upperBound)]
     }
     
 }
