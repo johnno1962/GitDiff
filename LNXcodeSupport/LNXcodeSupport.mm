@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/LNXcodeSupport/LNXcodeSupport.mm#7 $
+//  $Id: //depot/GitDiff/LNXcodeSupport/LNXcodeSupport.mm#9 $
 //
 
 #import "LNXcodeSupport.h"
@@ -196,8 +196,7 @@ static LNXcodeSupport *lineNumberPlugin;
 @implementation NSScroller (LineNumber)
 
 - (NSString *)editedDocPath {
-    return [[[[KeyPath objectFor:@"editor" from:self.superview.superview.superview.superview]
-              document] fileURL] path];
+    return [KeyPath objectFor:@"hostingEditor.dataSource.name" from:self.superview.superview] ?: @"";
 }
 
 // scroll bar overview

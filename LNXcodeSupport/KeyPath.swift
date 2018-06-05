@@ -10,7 +10,7 @@ import Foundation
 
 @objc public class KeyPath: NSObject {
 
-    @objc public class func object(for keyPath: String, from: AnyObject) -> AnyObject {
+    @objc public class func object(for keyPath: String, from: AnyObject) -> AnyObject? {
         var out = from
         for key in keyPath.components(separatedBy: ".") {
             for (name, value) in Mirror(reflecting: out).children {
@@ -25,6 +25,8 @@ import Foundation
                             dict[NSNumber(value: key)] = value
                         }
                         out = dict
+                    } else if name == "name" {
+                        out = value as! String as NSString
                     } else if mirror.displayStyle == .optional,
                         let value = mirror.children.first?.value {
                         out = value as AnyObject
@@ -35,6 +37,6 @@ import Foundation
                 }
             }
         }
-        return out
+        return out === from ? nil : out
     }
 }
