@@ -1,7 +1,7 @@
 
 # GitDiff9  - GitDiff for Xcode 9
 
-As this plugin has rather been "Sherlocked" it is no longer supported and does not work in Xcode 11.
+As this plugin has rather been "Sherlocked" it is no longer supported only just works in Xcode 11. You need to save the file before the highlights are visible.
 
 A port of the "GitDiff" Xcode plugin to the Xcode 9 beta now that the Source editor has been implemented in Swift. It uses an extensible framework of generalised providers of line number gutter highlights with which it communicates using JSON IPC. This version of GitDiff includes the implementations for four types of line number highlighters:
 

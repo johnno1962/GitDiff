@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/LNXcodeSupport/LNXcodeSupport.mm#10 $
+//  $Id: //depot/GitDiff/LNXcodeSupport/LNXcodeSupport.mm#11 $
 //
 
 #import "LNXcodeSupport.h"
@@ -22,6 +22,7 @@
 #define REVERT_DELAY 1.5
 
 static LNXcodeSupport *lineNumberPlugin;
+static NSString *lastSaved;
 
 @interface LNXcodeSupport () <LNRegistration, LNConnectionDelegate>
 
@@ -152,7 +153,7 @@ static LNXcodeSupport *lineNumberPlugin;
 
 - (void)forceLineNumberUpdate {
     if ([self isKindOfClass:lineNumberPlugin.sourceDocClass])
-        [lineNumberPlugin updateLinenumberHighlightsForFile:[[self fileURL] path]];
+        [lineNumberPlugin updateLinenumberHighlightsForFile:lastSaved = [[self fileURL] path]];
 }
 
 // source file is being saved
@@ -196,6 +197,7 @@ static LNXcodeSupport *lineNumberPlugin;
 @implementation NSScroller (LineNumber)
 
 - (NSString *)editedDocPath {
+    return lastSaved ?: @"";
     id name = [KeyPath objectFor:@"hostingEditor.dataSource.name" from:self.superview.superview];
     return [name isKindOfClass:[NSString class]] ? name : @"";
 }
@@ -235,14 +237,16 @@ static CGFloat gutterWidth;
     } else
         lineNumberGutter = floating.firstObject;
 
-    NSLog(@"updateLineNumberFlecksFor: %@ %@ %@", highlightGutter,
+    NSLog(@"updateLineNumberFlecksFor: %@ %@ %@ %@", filepath, highlightGutter,
           NSStringFromRect(highlightGutter.frame), lineNumberGutter);
 
     static Class gutterContentClasss;
     if (!gutterContentClasss)
         gutterContentClasss = objc_getClass("SourceEditor.SourceEditorGutterMarginContentView");
-    if (![lineNumberGutter isKindOfClass:gutterContentClasss])
-        return;
+    if (![lineNumberGutter isKindOfClass:gutterContentClasss] &&
+        !(floating.count > 1 &&
+          [lineNumberGutter = floating[1] isKindOfClass:gutterContentClasss]))
+            return;
 
     NSRect rect = lineNumberGutter.frame;
     gutterWidth = rect.size.width;
