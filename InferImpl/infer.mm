@@ -22,6 +22,9 @@
                                    inLogDirectory:(NSString *)logDirectory;
 @end
 
+#define INError(fmt, ...) fprintf(stderr, fmt, __VA_ARGS__)
+//#define INError(fmt, ...) NSLog(@fmt, __VA_ARGS__)
+
 @interface PhaseTwoInferAssignments : NSObject
 - (int)inferAssignmentsFor:(const char *)sourceFile
                  arguments:(const char **)argv into:(FILE *)output;
@@ -30,7 +33,7 @@
 int main(int argc, const char * argv[]) {
     const char *inferBinary = argv[0];
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <full path to swift source>\n", inferBinary);
+        INError("Usage: %s <full path to swift source>\n", inferBinary);
         exit(1);
     }
     else if(argc == 2) {
@@ -38,7 +41,7 @@ int main(int argc, const char * argv[]) {
         NSString *sourceFile = [NSString stringWithUTF8String:argv[1]];
         NSString *projectPath = [logReader projectForSourceFile:sourceFile];
         if (!projectPath) {
-            fprintf(stderr, "Could not find project for source file: %s\n", argv[1]);
+            INError("Could not find project for source file: %s\n", argv[1]);
             exit(1);
         }
 
@@ -46,7 +49,7 @@ int main(int argc, const char * argv[]) {
         NSString *compileCommand = [logReader commandLineForPrimaryFile:sourceFile
                                                          inLogDirectory:logDirectory];
         if (!compileCommand) {
-            fprintf(stderr, "Could not find compile command for '%s' in log directory: %s\n",
+            INError("Could not find compile command for '%s' in log directory: %s\n",
                     argv[1], logDirectory.UTF8String);
             exit(1);
         }
@@ -231,7 +234,7 @@ uint64_t swap_uint64(uint64_t val) {
     NSMutableData *sourceData = [NSMutableData dataWithContentsOfFile:[NSString stringWithUTF8String:sourceFile]
                                                               options:0 error:&error];
     if (!sourceData) {
-        fprintf(stderr, "Could not load source file '%s': %s\n",
+        INError("Could not load source file '%s': %s\n",
                 sourceFile, error.localizedDescription.UTF8String);
         return 1;
     }
@@ -241,14 +244,35 @@ uint64_t swap_uint64(uint64_t val) {
 
     sourcekitd_initialize();
 
-    int argc = 0;
+    int argc = 0, argo = 0;
     sourcekitd_object_t objects[1000];
+    NSDictionary *skips = @{
+        @"-primary-file": @1,
+        @"-emit-module-doc-path": @2,
+        @"-emit-dependencies-path": @2,
+        @"-emit-reference-dependencies-path": @2,
+        @"-enable-objc-interop": @1,
+        @"-warn-long-function-bodies": @1,
+        @"-warn-long-expression-type-checking": @1,
+        @"-serialize-debugging-options": @1,
+        @"-enable-anonymous-context-mangled-names": @1,
+        @"-pch-disable-validation": @1,
+        @"-serialize-diagnostics-path": @2,
+        @"-target-sdk-version": @2,
+    };
     while (argv[argc]) {
-        objects[argc] = sourcekitd_request_string_create(argv[argc]);
-        argc++;
+        NSString *option = [NSString stringWithUTF8String:argv[argc]];
+        option = [option stringByReplacingOccurrencesOfString:@"=.*" withString:@""
+                  options:NSRegularExpressionSearch range:NSMakeRange(0, option.length)];
+        int skip = [skips[option] intValue];
+        if (!skip)
+            objects[argo++] =
+                sourcekitd_request_string_create(argv[argc]);
+        argc += skip ?: 1;
     }
 
-    sourcekitd_object_t compilerArgs = sourcekitd_request_array_create(objects, argc);
+    sourcekitd_object_t compilerArgs =
+        sourcekitd_request_array_create(objects, argo);
 
     sourcekitd_uid_t nameID = sourcekitd_uid_get_from_cstr("key.name");
     sourcekitd_uid_t requestID = sourcekitd_uid_get_from_cstr("key.request");
@@ -267,10 +291,12 @@ uint64_t swap_uint64(uint64_t val) {
 
     // sourcekit cursor ops deal in byte offsets
     regex_t assigns;
-    if (int err = regcomp(&assigns, "[ \t\n](let|var)[ \t]+([^\n,)]+?)[ \t]=[ \t]", REG_EXTENDED|REG_ENHANCED)) {
+    if (int err = regcomp(&assigns,
+                          "[ \t\n](let|var)[ \t]+([^\n,)]+?)[ \t]=[ \t]",
+                          REG_EXTENDED|REG_ENHANCED)) {
         char errbuff[1000];
         regerror(err, &assigns, errbuff, sizeof errbuff);
-        fprintf(stderr, "Regex compilation error: %s\n", errbuff);
+        INError("Regex compilation error: %s\n", errbuff);
         return 1;
     }
 
@@ -286,7 +312,9 @@ uint64_t swap_uint64(uint64_t val) {
 
         sourcekitd_response_t response = sourcekitd_send_request_sync(cursorRequest);
         if (sourcekitd_response_is_error(response)) {
-            NSLog(@"Cursor request error: %s", sourcekitd_response_error_get_description(response));
+            NSLog(@"Cursor request %s",
+                  sourcekitd_response_error_get_description(response));
+            sourcekitd_request_description_dump(cursorRequest);
             continue;
         }
         else {

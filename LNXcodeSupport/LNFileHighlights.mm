@@ -68,7 +68,7 @@ typedef NSDictionary<NSString *, LNHighlightMap *> LNHighlightInfo;
 @end
 
 @implementation LNFileHighlights {
-    std::map<NSInteger, LNHighlightElement *> elemants;
+    std::map<NSInteger, LNHighlightElement *> elements;
 }
 
 - (instancetype)initWithData:(NSData *)json service:(NSString *)serviceName {
@@ -86,7 +86,7 @@ typedef NSDictionary<NSString *, LNHighlightMap *> LNHighlightInfo;
             LNHighlightElement *element;
 
             if (NSString *alias = map[@"alias"]) {
-                LNHighlightElement *original = elemants[alias.intValue];
+                LNHighlightElement *original = elements[alias.intValue];
                 if (map.count == 1)
                     element = original;
                 else {
@@ -98,8 +98,9 @@ typedef NSDictionary<NSString *, LNHighlightMap *> LNHighlightInfo;
                 [element updadateFrom:map];
             }
 
-            elemants[line.intValue] = element;
+            elements[line.intValue] = element;
         }
+        NSLog(@"Updated map: %ld elements", elements.size());
     }
 
     self.updated = [NSDate timeIntervalSinceReferenceDate];
@@ -107,15 +108,15 @@ typedef NSDictionary<NSString *, LNHighlightMap *> LNHighlightInfo;
 }
 
 - (void)setObject:(LNHighlightElement *)element atIndexedSubscript:(NSInteger)line {
-    elemants[line] = element;
+    elements[line] = element;
 }
 
 - (LNHighlightElement *)objectAtIndexedSubscript:(NSInteger)line {
-    return elemants.find(line) != elemants.end() ? elemants[line] : nil;
+    return elements.find(line) != elements.end() ? elements[line] : nil;
 }
 
 - (void)foreachHighlight:(void (^)(NSInteger line, LNHighlightElement *element))block {
-    for (auto it = elemants.begin(); it != elemants.end(); ++it)
+    for (auto it = elements.begin(); it != elements.end(); ++it)
         block(it->first, it->second);
 }
 
@@ -128,7 +129,7 @@ typedef NSDictionary<NSString *, LNHighlightMap *> LNHighlightInfo;
             block(NSMakeRange(lastElement.start, lastLine - lastElement.start + 1), lastElement);
     };
 
-    for (auto it = elemants.begin(); it != elemants.end(); ++it) {
+    for (auto it = elements.begin(); it != elements.end(); ++it) {
         callbackOnNewElement(it->second);
         lastElement = it->second;
         lastLine = it->first;
@@ -142,7 +143,7 @@ typedef NSDictionary<NSString *, LNHighlightMap *> LNHighlightInfo;
     __block LNHighlightElement *lastElement = nil;
     __block NSInteger lastLine = 0;
 
-    for (auto it = elemants.begin(); it != elemants.end(); ++it) {
+    for (auto it = elements.begin(); it != elements.end(); ++it) {
         NSInteger line = it->first;
         if (it->second == lastElement)
             highlights[@(line).stringValue] = @{ @"alias" : @(lastLine).stringValue };
@@ -160,7 +161,7 @@ typedef NSDictionary<NSString *, LNHighlightMap *> LNHighlightInfo;
 }
 
 - (void)invalidate {
-    elemants.clear();
+    elements.clear();
 }
 
 @end
